@@ -100,7 +100,8 @@ In this bull run equal-weight leads on return/Sharpe; momentum draws down less.
 ## Data we need
 
 We currently have **S&P-500 daily OHLCV** (yfinance). The LLM work needs more.
-Full procurement checklist (coverage, access, point-in-time rules):
+Full procurement checklist — coverage, access, point-in-time rules, and **what
+each source is for in the paper + which training stage uses it**:
 [`docs/DATA_REQUIREMENTS.md`](docs/DATA_REQUIREMENTS.md).
 
 | Priority | Item | Access | Who |

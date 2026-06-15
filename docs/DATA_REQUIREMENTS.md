@@ -84,6 +84,48 @@ Gap: the dataset has **no ETFs**, so the paper's SPY/QQQ are currently dropped.
 
 ---
 
+## How each source is used in the paper (purpose & training stage)
+
+Trading-R1 trains a reasoning LLM with a **3-stage easy-to-hard curriculum**
+(each stage = SFT warm-start → GRPO RL fine-tuning → self-distill augmentation):
+
+- **Stage I — STRUCTURE:** organize the analysis into well-formed sections
+  (fundamentals / technical / news / sentiment / macro / conclusion).
+- **Stage II — CLAIMS:** make each point *evidence-grounded* — every bullet must
+  pair an opinion with a **verbatim quote** and a **named source**
+  (anti-hallucination).
+- **Stage III — DECISION:** emit a 5-class call (Strong Sell … Strong Buy),
+  rewarded against a volatility-adjusted ground-truth label.
+
+All five modalities are assembled into **one prompt per (ticker, trading day)** —
+the *input context* the model reasons over in every stage. Beyond that shared
+input role, each source has a specific job:
+
+| Modality (source) | Purpose in the paper | Which model / training step it feeds |
+|---|---|---|
+| **Technical — price** (Yahoo) | Input for the technical-analysis section **and** the source of the **5-class label**: the volatility-adjusted target is computed deterministically from price EMA returns (Algorithm S1). | Input (all stages) · **Decision label & RL decision reward (Stage III)** · distillation target check |
+| **Technical — indicators** (stockstats, derived) | Technical-analysis section content (MACD/RSI/Bollinger/…). | Input (all stages) |
+| **News** (Finnhub / Google) | Evidence for the news section; **quotable** headlines with source + date. | Input · **Evidence reward (Stage II)** — opinion+quote+source grounding · distillation |
+| **Fundamentals** (SimFin / SEC EDGAR) | Fundamental-analysis section; **quotable** financial line items with filing date. | Input · **Evidence reward (Stage II)** · distillation |
+| **Sentiment** (Finnhub insider, Yahoo analyst) | Sentiment & analyst-coverage sections; insider sentiment/transactions, up/downgrades. | Input · **Evidence reward (Stage II)** · distillation |
+| **Macro** (FRED) | Macro-context section (rates, inflation, …). | Input · Evidence reward (Stage II) · distillation |
+
+**Two consequences for how the data must look:**
+
+1. **Price quality is label quality.** The training *answers* (5-class labels)
+   and the RL *decision reward* are derived from price. Clean, complete,
+   split/dividend-adjusted daily prices for the full window are non-negotiable.
+2. **Text modalities must be quotable, not pre-scored.** Stage II rewards a
+   bullet only when it carries a *verbatim quote* and a *named source*. So we
+   need the **actual text snippets + source name + date** — raw articles /
+   filing excerpts / disclosure text — **not** a single sentiment number. A
+   sentiment score alone cannot be grounded and is unusable for the evidence
+   reward.
+
+> The prompt-only LLM baseline (#2) uses the *same assembled input* but no
+> training — it just reads the snapshot and emits a 5-class call. So the input
+> modalities are needed even before any training, to make #2 a fair comparison.
+
 ## Hard requirement: point-in-time integrity
 
 Every non-price item **must carry its real publish/filing timestamp**, and the
