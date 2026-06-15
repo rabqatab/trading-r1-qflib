@@ -8,10 +8,16 @@ hash, so identical inputs always return identical outputs (reproducibility).
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Callable
 
 from compare_lab.config import CACHE_DIR
+
+# Endpoint + served model id, overridable via env so the same code targets
+# whatever vLLM server is up (e.g. a sparkq job on a non-default port).
+DEFAULT_BASE_URL = os.environ.get("VLLM_BASE_URL", "http://localhost:8000/v1")
+DEFAULT_MODEL = os.environ.get("VLLM_MODEL", "Qwen/Qwen3-4B")
 
 
 def _default_transport(base_url: str, model: str) -> Callable[[str], str]:
@@ -35,8 +41,8 @@ class VLLMClient:
     def __init__(
         self,
         transport: Callable[[str], str] | None = None,
-        base_url: str = "http://localhost:8000/v1",
-        model: str = "Qwen/Qwen3-4B",
+        base_url: str = DEFAULT_BASE_URL,
+        model: str = DEFAULT_MODEL,
         cache_dir: Path = CACHE_DIR,
     ):
         self._transport = transport or _default_transport(base_url, model)
