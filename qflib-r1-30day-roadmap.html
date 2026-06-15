@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>QF-Lib × Trading-R1 30일 로드맵</title>
+  <style>
+    :root{
+      --bg:#f6f8fb;--paper:#fff;--ink:#111827;--muted:#667085;--line:#e5e9f2;
+      --blue:#2563eb;--blue2:#eaf1ff;--green:#059669;--green2:#e8f7f1;
+      --orange:#d97706;--orange2:#fff3dc;--violet:#7c3aed;--violet2:#f1eaff;
+      --dark:#0f172a;--shadow:0 18px 44px rgba(15,23,42,.08)
+    }
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Pretendard,"Apple SD Gothic Neo",sans-serif;line-height:1.55;letter-spacing:-.025em}
+    .page{max-width:1040px;margin:0 auto;padding:18px 12px 60px}.hero{background:linear-gradient(135deg,#0f172a,#1d4ed8 58%,#0f766e);color:white;border-radius:28px;padding:34px 26px;box-shadow:var(--shadow)}
+    .badge{display:inline-flex;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.18);padding:7px 11px;border-radius:999px;font-size:13px;font-weight:900}.hero h1{margin:16px 0 10px;font-size:clamp(34px,7vw,62px);line-height:1.02;letter-spacing:-.06em}.hero p{margin:0;max-width:820px;color:rgba(255,255,255,.86);font-size:18px}.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}.chip{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:8px 11px;font-size:13px;font-weight:800;color:rgba(255,255,255,.94)}
+    .grid{display:grid;gap:13px}.grid2{grid-template-columns:1fr 1fr}.grid4{grid-template-columns:repeat(4,1fr)}.card{margin-top:14px;background:var(--paper);border:1px solid var(--line);border-radius:22px;padding:20px;box-shadow:0 10px 28px rgba(15,23,42,.045)}.card h2{margin:0 0 10px;font-size:25px;line-height:1.15;letter-spacing:-.045em}.card h3{margin:0 0 8px;font-size:18px}.card p{margin:0;color:var(--muted)}strong{color:var(--ink)}
+    .tag{display:inline-flex;padding:5px 9px;border-radius:999px;font-size:12px;font-weight:950;margin-bottom:9px}.blue{background:var(--blue2);color:var(--blue)}.green{background:var(--green2);color:var(--green)}.orange{background:var(--orange2);color:var(--orange)}.violet{background:var(--violet2);color:var(--violet)}
+    .big{font-size:26px;line-height:1.22;font-weight:950;color:var(--ink)}.quote{border-left:5px solid var(--blue);padding-left:15px}.dark{background:var(--dark);color:white}.dark p,.dark li{color:rgba(255,255,255,.82)}.dark strong{color:white}
+    ul{margin:8px 0 0;padding-left:18px;color:var(--muted)}li{margin:5px 0}.week{border-top:6px solid var(--blue)}.week:nth-child(2){border-top-color:var(--green)}.week:nth-child(3){border-top-color:var(--orange)}.week:nth-child(4){border-top-color:var(--violet)}
+    .lane{display:grid;grid-template-columns:82px 1fr;gap:12px;align-items:start;margin-top:11px}.lane b{display:inline-grid;place-items:center;min-height:34px;border-radius:12px;background:var(--blue2);color:var(--blue);font-size:13px}.lane:nth-of-type(2) b{background:var(--green2);color:var(--green)}.lane:nth-of-type(3) b{background:var(--orange2);color:var(--orange)}
+    .timeline{display:grid;gap:12px}.mini{font-size:13px;color:var(--muted)}.check{display:grid;gap:9px}.check div{background:#f8fafc;border:1px solid var(--line);border-radius:15px;padding:12px}.footer{text-align:right;color:var(--muted);font-size:12px;margin-top:18px}
+    @media(max-width:860px){.grid2,.grid4{grid-template-columns:1fr}.hero{border-radius:24px;padding:28px 21px}.big{font-size:22px}.lane{grid-template-columns:1fr}.page{padding:12px 9px 44px}}
+  </style>
+</head>
+<body>
+<main class="page">
+  <header class="hero">
+    <div class="badge">QF-Lib × Trading-R1 · 30일 실행 로드맵</div>
+    <h1>한 달 안에 “LLM 시그널을 qf-lib에서 검증”하는 파일럿 만들기</h1>
+    <p>목표는 Trading-R1 전체 재현이 아니다. 먼저 qf-lib 위에서 LLM이 종목/weight/근거를 뱉고, 그 결과를 look-ahead 없이 백테스트·라이브 섀도우로 검증하는 최소 시스템을 만든다.</p>
+    <div class="chips">
+      <div class="chip">Track A: qf-lib 실증 MVP</div>
+      <div class="chip">Track B: LLM 학습 / LoRA SFT</div>
+      <div class="chip">Karpathy nanoGPT/nanoChat 포함</div>
+    </div>
+  </header>
+
+  <section class="card">
+    <h2>30일 후 우리가 가져야 할 것</h2>
+    <p class="big quote">qf-lib 위에서 <strong>Prompt-only LLM</strong>과 <strong>작게 학습한 SFT 모델</strong>이 모두 weight+rationale을 출력하고, 둘을 baseline과 함께 backtest + live shadow로 비교할 수 있어야 한다.</p>
+  </section>
+
+  <section class="grid grid2">
+    <div class="card">
+      <span class="tag blue">Track A</span>
+      <h2>qf-lib 실증 MVP</h2>
+      <ul>
+        <li>MarketSnapshotBuilder</li>
+        <li>LLMWeightProvider</li>
+        <li>qf-lib backtest integration</li>
+        <li>rationale 포함 HTML report</li>
+        <li>live shadow paper portfolio</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="tag green">Track B</span>
+      <h2>LLM 학습 역량 + R1-like SFT</h2>
+      <ul>
+        <li>Karpathy nanoGPT/nanoChat 튜토리얼</li>
+        <li>Qwen/Llama small model inference</li>
+        <li>LoRA SFT 환경 구축</li>
+        <li>signal+rationale JSON 학습</li>
+        <li>schema-following eval</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="card dark">
+    <h2>가장 중요한 원칙</h2>
+    <ul>
+      <li><strong>Pretraining은 하지 않는다.</strong> 한 달 목표는 pretraining이 아니라 LoRA SFT다.</li>
+      <li><strong>RL/RFT는 Month 2로 넘긴다.</strong> 첫 달에 RL까지 욕심내면 데이터/검증이 무너진다.</li>
+      <li><strong>LLM은 봉인된 snapshot만 본다.</strong> qf-lib가 준 point-in-time 입력 외부를 조회하지 못하게 한다.</li>
+      <li><strong>성과보다 검증 인프라가 먼저다.</strong> “돈 번다”가 아니라 “엄밀히 검증된다”가 첫 달의 산출물이다.</li>
+    </ul>
+  </section>
+
+  <div class="grid grid4">
+    <section class="card week">
+      <span class="tag blue">Week 1</span>
+      <h2>qf-lib MVP + LLM 학습 튜토리얼</h2>
+      <div class="lane"><b>qf-lib</b><div><p>SPY, QQQ, AAPL, MSFT / Yahoo OHLCV / 기본 기술지표 / MarketSnapshotBuilder / LLMWeightProvider.</p></div></div>
+      <div class="lane"><b>LLM</b><div><p>Karpathy nanoGPT 또는 nanoChat 1회 완주. tokenization, pretraining, SFT, sampling, eval 감각 확보.</p></div></div>
+      <div class="lane"><b>완료</b><div><p>LLM weight로 qf-lib backtest 1개 실행. rationale과 성과가 같은 리포트에 찍힘.</p></div></div>
+    </section>
+
+    <section class="card week">
+      <span class="tag green">Week 2</span>
+      <h2>Point-in-Time Dataset Builder</h2>
+      <div class="lane"><b>Data</b><div><p>OHLCV, 기술지표, FRED macro, SEC companyfacts/EDGAR. 뉴스는 optional로 Google News headline부터.</p></div></div>
+      <div class="lane"><b>Build</b><div><p>ticker-day snapshot, as_of_date 필터, snapshot hash, parquet/jsonl 저장, 2021~현재 기간.</p></div></div>
+      <div class="lane"><b>완료</b><div><p>임의 날짜 t의 입력에 t 이후 정보가 없음. 같은 snapshot은 항상 같은 hash.</p></div></div>
+    </section>
+
+    <section class="card week">
+      <span class="tag orange">Week 3</span>
+      <h2>Label/Reward + SFT v0</h2>
+      <div class="lane"><b>Label</b><div><p>3/7/15일 forward return, 20일 vol normalize, 0.3/0.5/0.2 weighted score, 5-class action.</p></div></div>
+      <div class="lane"><b>SFT</b><div><p>Qwen 1.5B~4B 또는 Llama 계열 LoRA SFT. rationale은 v0에서 template로 시작.</p></div></div>
+      <div class="lane"><b>완료</b><div><p>JSON schema 95%+ 준수. Buy/Sell/Hold 분포 붕괴 없음. qf-lib에 바로 투입 가능.</p></div></div>
+    </section>
+
+    <section class="card week">
+      <span class="tag violet">Week 4</span>
+      <h2>Backtest 비교 + Live Shadow</h2>
+      <div class="lane"><b>비교</b><div><p>equal weight, momentum/risk parity, prompt-only LLM, SFT v0를 qf-lib에서 동일 조건 비교.</p></div></div>
+      <div class="lane"><b>Live</b><div><p>매일/매주 snapshot 생성, weight 출력, 실제 주문 없이 paper portfolio 운용.</p></div></div>
+      <div class="lane"><b>완료</b><div><p>backtest report HTML, live shadow dashboard 초안, CERN/qf-lib용 1-page memo.</p></div></div>
+    </section>
+  </div>
+
+  <section class="card">
+    <h2>최종 산출물 체크리스트</h2>
+    <div class="check">
+      <div><strong>1. qf-lib integration</strong><br><span class="mini">MarketSnapshotBuilder · LLMWeightProvider · rationale 포함 backtest report</span></div>
+      <div><strong>2. Dataset</strong><br><span class="mini">point-in-time ticker-day snapshots · label/reward generator · train/valid/test split</span></div>
+      <div><strong>3. LLM 학습</strong><br><span class="mini">nanoGPT/nanoChat 실습 완료 · LoRA SFT v0 checkpoint · schema-following eval</span></div>
+      <div><strong>4. 검증</strong><br><span class="mini">prompt-only vs SFT vs baseline qf-lib backtest · live shadow mode 시작</span></div>
+      <div><strong>5. 제안 자료</strong><br><span class="mini">“R1-style reasoning signal을 qf-lib에서 재현 가능하게 검증하는 오픈소스 파일럿”으로 정리</span></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>한 줄 로드맵</h2>
+    <p class="big quote"><strong>Week 1 붙인다</strong> → <strong>Week 2 데이터를 봉인한다</strong> → <strong>Week 3 작게 학습한다</strong> → <strong>Week 4 qf-lib로 비교하고 live shadow를 시작한다.</strong></p>
+  </section>
+
+  <div class="footer">QF-Lib × Trading-R1 30-day roadmap · scope: MVP + LoRA SFT, RL/RFT deferred to Month 2</div>
+</main>
+</body>
+</html>

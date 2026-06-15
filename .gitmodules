@@ -1,0 +1,3 @@
+[submodule "qf-lib-harness"]
+	path = qf-lib-harness
+	url = https://github.com/ico1036/qf-lib-harness.git

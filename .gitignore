@@ -1,0 +1,17 @@
+# Claude Code local settings
+.claude/settings.local.json
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+.env
+
+# OS
+.DS_Store
+
+# Local data / outputs (reproducible)
+data/
+output/
+compare_lab/.cache/
