@@ -1,0 +1,33 @@
+[project]
+name = "tradingr1-compare-lab"
+version = "0.1.0"
+description = "Common qf-lib evaluation substrate comparing factor and LLM trading signals."
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    "qf-lib",
+    "pandas>=2.0",
+    "numpy>=1.26",
+    "pyarrow>=15.0.0",
+    "stockstats>=0.6.2",
+    "plotly>=6.0.0",
+    "openai>=1.40.0",
+]
+
+[dependency-groups]
+dev = ["pytest>=8.0"]
+
+[tool.uv.sources]
+qf-lib = { git = "https://github.com/ico1036/qf-lib.git", rev = "9ba5a0f5dcc3c3f06f8488f2b8cc7fe12afa15d8" }
+
+[tool.uv]
+override-dependencies = ["WeasyPrint>=60.0"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["compare_lab"]
+
+[tool.pytest.ini_options]
+testpaths = ["compare_lab/tests"]
