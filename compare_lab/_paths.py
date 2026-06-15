@@ -16,6 +16,11 @@ _HARNESS = _REPO_ROOT / "qf-lib-harness"
 def ensure_harness_on_path() -> Path:
     """Insert the submodule root on sys.path so `import alpha_lab` works.
     Returns the harness path. Idempotent."""
+    if not _HARNESS.is_dir():
+        raise RuntimeError(
+            f"qf-lib-harness submodule not found at {_HARNESS}; "
+            f"run: git submodule update --init"
+        )
     p = str(_HARNESS)
     if p not in sys.path:
         sys.path.insert(0, p)
