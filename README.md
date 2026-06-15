@@ -97,6 +97,24 @@ Out-of-sample **2024-01 → 2026-04**, 12 large-cap equities
 In this bull run equal-weight leads on return/Sharpe; momentum draws down less.
 *(Baseline comparison only — the LLM row is not in yet.)*
 
+## Data we need
+
+We currently have **S&P-500 daily OHLCV** (yfinance). The LLM work needs more.
+Full procurement checklist (coverage, access, point-in-time rules):
+[`docs/DATA_REQUIREMENTS.md`](docs/DATA_REQUIREMENTS.md).
+
+| Priority | Item | Access | Who |
+|---|---|---|---|
+| **P0** | SPY, QQQ (and optionally full ~7k) OHLCV | yfinance (free) | self-serve |
+| **P1** | **FRED** API key (macro) | free key | coworker |
+| **P1** | **Finnhub** API key (news + insider sentiment) | free/paid | coworker |
+| **P1** | **SimFin** API key + SEC EDGAR (fundamentals) | free/paid | coworker |
+| **P2** | News history archive (18 mo × 14 tickers) | paid likely | coworker |
+
+**Hard requirement:** every non-price item must carry its real **publish/filing
+timestamp** so we can filter to "available as of trading day *t*" — any
+future-dated leakage invalidates the backtest.
+
 ## Roadmap
 
 - **Sub-project 1 — comparison substrate + baselines** ✅ done
