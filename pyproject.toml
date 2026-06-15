@@ -11,6 +11,7 @@ dependencies = [
     "stockstats>=0.6.2",
     "plotly>=6.0.0",
     "openai>=1.40.0",
+    "requests>=2.34.2",
 ]
 
 [dependency-groups]
