@@ -5,6 +5,13 @@
 > Status checked against current repo state on 2026-06-21.  
 > Baseline health: `36 passed`; repo has many uncommitted/untracked files.
 
+> **RESOLUTION (2026-06-22):** P0, P1.1, P1.2, P1.3, P2.1 all **done** on branch
+> `checkpoint/2026-06-21-llm-sft-data` (8 grouped commits; tests **52 passed**).
+> Headline: **SFT v0 evaluated → degenerate (100% HOLD → all-cash, CR 0%)** — a
+> clean negative result; next is SFT v1 (balanced data + completion-only loss +
+> distillation) and/or P2.2 (multi-modal prompt-only run). Per-item details below
+> and in [`PROGRESS-2026-06-21.md`](PROGRESS-2026-06-21.md).
+
 ## Current baseline
 
 ### Completed / landed
@@ -266,11 +273,11 @@ The pipeline needs one normalized revenue line per ticker/filing period.
 
 The external review is broadly correct: the proposed tasks are possible in this directory. The safest order is:
 
-1. **Checkpoint current completed work.**
-2. **Normalize fundamentals revenue.**
-3. **Implement multi-modal PIT snapshot join.**
-4. **Add parse-rate guardrail.**
-5. **Evaluate SFT v0 adapter.**
-6. **Then proceed to teacher distillation / GRPO.**
+1. ✅ **Checkpoint current completed work.** — branch + 8 grouped commits.
+2. ✅ **Normalize fundamentals revenue.** — `fundamentals_pit.py` → `fundamentals_pit.parquet`.
+3. ✅ **Implement multi-modal PIT snapshot join.** — `multimodal_context.py`, opt-in in `snapshot.py`.
+4. ✅ **Add parse-rate guardrail.** — `parse_decision_status` + `LLMProvider.parse_stats`.
+5. ✅ **Evaluate SFT v0 adapter.** — **degenerate (all-HOLD)**; documented in the memo.
+6. 🔜 **SFT v1** (fix the v0 collapse), then teacher distillation / GRPO.
 
-Do not start GRPO or teacher distillation before multi-modal snapshot integration and SFT-v0 evaluation are complete.
+Do not start GRPO or teacher distillation before multi-modal snapshot integration and SFT-v0 evaluation are complete. *(Both now complete.)*
