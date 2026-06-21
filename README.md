@@ -8,7 +8,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/python-3.11-blue" alt="Python 3.11">
   <img src="https://img.shields.io/badge/engine-qf--lib%20(submodule)-orange" alt="qf-lib">
-  <img src="https://img.shields.io/badge/tests-23%20passing-brightgreen" alt="tests">
+  <img src="https://img.shields.io/badge/tests-36%20passing-brightgreen" alt="tests">
 </p>
 
 ---
@@ -21,8 +21,8 @@ evaluation harness so the numbers are actually comparable:
 | # | Approach | Status |
 |---|---|---|
 | **#3** | **Quant factor** (12-1 momentum) | ✅ running |
-| **#2** | **Prompt-only open-source LLM** (≈4B) → 5-class signal | 🔜 needs a served model |
-| **#1** | **Trained Trading-R1** (Qwen-class, SFT + GRPO) | 🗺️ planned (separate spec) |
+| **#2** | **Prompt-only open-source LLM** (Qwen3-4B) → 5-class signal | ✅ **landed** (provenance-verified) |
+| **#1** | **Trained Trading-R1** (Qwen-class, SFT → GRPO) | 🟢 **SFT v0 trained** (LoRA); GRPO next |
 
 Every approach emits the same thing — a **target-weight matrix
 `[date × ticker]`** — which is run through a single
@@ -37,16 +37,22 @@ code/data/weights are unreleased, so this is a *reimplementation*, not a rerun.
 
 ```
 trading-r1-qflib/
-├── compare_lab/         # the comparison substrate (this repo's code)
-│   ├── snapshot.py      #   per-ticker, as-of, price+technical → LLM prompt
-│   ├── providers/       #   equal_weight · momentum · llm  (all → weight matrix)
-│   ├── llm_client.py    #   vLLM (OpenAI-compatible) client + response cache
-│   ├── backtest.py      #   qf-lib bridge: weights → daily returns
-│   ├── metrics.py       #   CR / SR / HR / MDD
-│   └── run_comparison.py#   CLI: run every provider, write the comparison
-├── qf-lib-harness/      # submodule → github.com/ico1036/qf-lib-harness (frozen, reused read-only)
-├── docs/superpowers/    # specs/ (design) + plans/ (implementation)
-└── tradingR1.pdf        # the paper
+├── compare_lab/          # the comparison substrate (sub-project 1)
+│   ├── snapshot.py       #   per-ticker, as-of, price+technical → LLM prompt
+│   ├── providers/        #   equal_weight · momentum · llm  (all → weight matrix)
+│   ├── llm_client.py     #   vLLM (OpenAI-compatible) client + response cache
+│   ├── backtest.py       #   qf-lib bridge: weights → daily returns
+│   ├── metrics.py        #   CR / SR / HR / MDD
+│   ├── run_comparison.py #   CLI: run every provider, write the comparison
+│   ├── analyze_results.py#   richer diagnostics (corr, decision dist) for the memo
+│   ├── labeling.py       #   volatility 5-class labels (Algorithm S1) — SFT/RL target
+│   ├── macro_pit.py      #   fix delivered macro release_date leak  → macro_pit.parquet
+│   ├── insider_pit.py    #   recover insider txn-type from text     → *_pit.parquet
+│   └── sft/              #   sub-project 2: build_dataset · train (LoRA) · README
+├── qf-lib-harness/       # submodule → github.com/ico1036/qf-lib-harness (frozen, read-only)
+├── data/                 # gitignored: prices, qflib_data_store/ (multi-modal), sft_adapter_v0/
+├── docs/                 # DATA_STORE.md · DATA_REQUIREMENTS.md · memo · superpowers/{specs,plans}
+└── tradingR1.pdf         # the paper
 ```
 
 `compare_lab` reuses the `qf-lib-harness` submodule's data loaders and the
@@ -86,47 +92,73 @@ Writes `comparison.csv` + an interactive `equity.html`.
 
 ## Results so far
 
-Out-of-sample **2024-01 → 2026-04**, 12 large-cap equities
-(SPY/QQQ excluded — the fast S&P-500 dataset has no ETFs):
+Out-of-sample **2024-01 → 2026-04**, 12 large-cap equities, weekly rebalance:
 
 | Strategy | Cumulative | Sharpe | MaxDD |
 |---|---|---|---|
 | Equal-weight (market) | **+126 %** | **1.07** | 27.8 % |
-| 12-1 momentum | +50 % | 0.66 | **19.6 %** |
+| 12-1 momentum | +50 % | 0.66 | 19.6 % |
+| **Prompt-only LLM** (Qwen3-4B) | +43 % | 0.71 | **14.8 %** |
 
-In this bull run equal-weight leads on return/Sharpe; momentum draws down less.
-*(Baseline comparison only — the LLM row is not in yet.)*
+In this bull run equal-weight leads on raw return; the prompt-only LLM **lags on
+return but carries the lowest drawdown** and — the key finding — its daily
+returns are the **least correlated** to the baselines (0.63–0.69 vs 0.90 between
+the two quant strategies), i.e. a *differentiated* signal, not a momentum copy.
+Full write-up + caveats: [`docs/2026-06-21-three-way-comparison-memo.md`](docs/2026-06-21-three-way-comparison-memo.md)
+(`compare_lab/output/report.html` for the interactive version). The LLM
+decisions are provenance-verified (12/12 cached replies reproduced by the live
+model). **Robustness:** adding SPY/QQQ (14-ticker run, `compare_lab/output_14/`)
+*lowers* the LLM's Sharpe (0.71→0.55) while it keeps the lowest drawdown — the
+prompt-only signal is sensitive to universe composition (it goes long the ETFs
+too), which is itself an argument for training (#1).
 
-## Data we need
+## Data
 
-We currently have **S&P-500 daily OHLCV** (yfinance). The LLM work needs more.
-Full procurement checklist — coverage, access, point-in-time rules, and **what
-each source is for in the paper + which training stage uses it**:
+**The multi-modal point-in-time pull has landed** (2026-06-21,
+`data/qflib_data_store/`): price · news · fundamentals · analyst & insider
+sentiment · macro — 6 parquet files, each carrying a real publish/filing
+timestamp. Full schema and coverage in [`docs/DATA_STORE.md`](docs/DATA_STORE.md).
+Two delivered-data PIT defects were **found and fixed** (unit-tested): the macro
+`release_date` leak → `macro_pit.parquet`, and the empty insider txn-type →
+`sentiment_insider_pit.parquet`. The remaining job is **integration** (join
+modalities into the snapshot by their PIT timestamp), not procurement.
+
+| Modality | File | Coverage |
+|---|---|---|
+| price (14 tk + raw_close) | `prices.parquet` | 2015–2026 |
+| news (headlines) | `news.parquet` | 12 eq × 2024-01→2025-06 |
+| fundamentals (10-Q/K) | `fundamentals.parquet` | 8 concepts |
+| sentiment (analyst) | `sentiment_analyst.parquet` | 12 eq |
+| sentiment (insider) | `sentiment_insider_pit.parquet` ✅ | 12 eq (txn-type recovered) |
+| macro (FRED, 8 series) | `macro_pit.parquet` ✅ | 2022–2026 (leak-fixed) |
+
+Procurement history + per-source paper mapping:
 [`docs/DATA_REQUIREMENTS.md`](docs/DATA_REQUIREMENTS.md).
 
-| Priority | Item | Access | Who |
-|---|---|---|---|
-| **P0** | SPY, QQQ (and optionally full ~7k) OHLCV | yfinance (free) | self-serve |
-| **P1** | **FRED** API key (macro) | free key | coworker |
-| **P1** | **Finnhub** API key (news + insider sentiment) | free/paid | coworker |
-| **P1** | **SimFin** API key + SEC EDGAR (fundamentals) | free/paid | coworker |
-| **P2** | News history archive (18 mo × 14 tickers) | paid likely | coworker |
-
-**Hard requirement:** every non-price item must carry its real **publish/filing
-timestamp** so we can filter to "available as of trading day *t*" — any
+**Hard requirement:** every non-price item must be joined on its real
+**publish/filing timestamp** ("available as of trading day *t*") — any
 future-dated leakage invalidates the backtest.
 
 ## Roadmap
 
 - **Sub-project 1 — comparison substrate + baselines** ✅ done
   (`docs/superpowers/specs/2026-06-15-compare-lab-eval-substrate-design.md`).
-- **Task 11 — prompt-only LLM row** 🔜 serve a ≈4B model with single-node vLLM
-  (`--enforce-eager`, BF16) on DGX Spark via `sparkq`, then `run_comparison --llm`.
-- **Sub-project 2 — train Trading-R1** 🗺️ data → distillation → SFT → GRPO on
-  DGX Spark (`docs/superpowers/specs/2026-05-25-trading-r1-dgx-spark-design.md`).
+- **Task 11 — prompt-only LLM row** ✅ done — `Qwen3-4B-Instruct-2507` served
+  single-node vLLM (`--enforce-eager`, BF16) on DGX Spark via `sparkq`; LLM row
+  landed and provenance-verified.
+- **Sub-project 2 — train Trading-R1** 🟢 in progress
+  (`docs/superpowers/specs/2026-05-25-trading-r1-dgx-spark-design.md`):
+  - ✅ `labeling.py` — volatility 5-class labels (Algorithm S1); distribution
+    matches paper Table 2 (Strong-Sell→Strong-Buy: 3/12/38/32/15%).
+  - ✅ SFT **v0** — LoRA on Qwen3-4B (`compare_lab/sft/`), trained on pre-2024
+    data (leak-safe); eval token-acc ~80%. GB10 compatibility gate cleared.
+  - 🔜 teacher distillation (Qwen3-32B) to replace templated rationale, then
+    **GRPO** RL with the structure/evidence/decision rewards.
+- **Data integration** 🔜 join news/fundamentals/sentiment/macro into the
+  snapshot by PIT timestamp ([`docs/DATA_STORE.md`](docs/DATA_STORE.md)).
 
 ## Testing
 
 ```bash
-uv run pytest -q   # 23 passing
+uv run python -m pytest -q   # 36 passing
 ```

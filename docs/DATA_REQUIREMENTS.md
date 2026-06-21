@@ -5,7 +5,29 @@
 > method per source. Grounded in the paper's collection rules
 > ([`trading-r1-paper-summary.md`](trading-r1-paper-summary.md) §2).
 
-## TL;DR — what to get
+## Status (2026-06-21): the multi-modal pull has LANDED ✅
+
+A coworker delivered `qflib_data_store.zip` → `data/qflib_data_store/`
+(6 parquet files, all carrying real publish/filing timestamps). Full schema,
+coverage, and **two delivered-data PIT defects (both now fixed, unit-tested)**
+are documented in [`DATA_STORE.md`](DATA_STORE.md). Headline status below.
+
+| Priority | Item | Status |
+|---|---|---|
+| **P0** | SPY, QQQ daily OHLCV | ✅ **in** (`prices.parquet`, 14 tickers + `raw_close`) |
+| **P1** | FRED macro | ✅ **in** (`macro.parquet`, 8 series) — `release_date` leak ✅ fixed → `macro_pit.parquet` |
+| **P1** | Finnhub-style news | ✅ **in** (`news.parquet`, 12 eq × 18 mo, headlines only) |
+| **P1** | Fundamentals (SEC EDGAR/XBRL) | ✅ **in** (`fundamentals.parquet`, 8 concepts, 10-Q/K) |
+| **P1** | Sentiment (analyst + insider) | ✅ **in** — insider txn-type ✅ recovered → `sentiment_insider_pit.parquet` |
+| **P2** | News history archive | ◑ partial — 18 mo headlines (no article body) |
+
+**Remaining work is integration, not procurement.** Done: macro leak fix
+(`macro_pit.parquet`), insider txn-type recovery (`sentiment_insider_pit.parquet`).
+Open: normalize the two fundamentals revenue tags, extend
+`compare_lab/snapshot.py` to join all modalities by their PIT timestamp.
+See [`DATA_STORE.md`](DATA_STORE.md).
+
+<details><summary>Original procurement checklist (kept for reference)</summary>
 
 | Priority | Item | Why | Access | Who |
 |---|---|---|---|---|
@@ -17,21 +39,21 @@
 | **P1** | SEC EDGAR access | fundamentals (10-Q/10-K) | free, no key | self-serve |
 | **P2** | News archive (Finnhub history or vendor) | the paper's news is 30-day lookback per trading day across 18 months | paid tier likely | coworker |
 
-**P0** unblocks finishing the current comparison substrate (sub-project 1).
-**P1/P2** are for the LLM work — the prompt-only LLM (#2) and the Trading-R1
-reimplementation (#1, sub-project 2).
+</details>
 
 ---
 
 ## What we already have
 
-- **Daily OHLCV**, S&P 500 constituents (503 tickers), 2015-01-02 → 2026-06-12,
-  via yfinance (`qf-lib-harness/data/prices.parquet`, gitignored).
+- **Daily OHLCV**, S&P 500 constituents **+ SPY/QQQ** (505 tickers),
+  2015-01-02 → 2026-06-12, via yfinance (`qf-lib-harness/data/prices.parquet`,
+  gitignored). SPY/QQQ added 2026-06-21 (`research/add_etfs.py`, same
+  `auto_adjust=True` basis) — the paper's full 14-ticker universe is now complete.
 - Derived **technical indicators** computed locally with `stockstats` (no
   external source needed) — paper Table S2 set (SMA/EMA, MACD, RSI, KDJ, CCI,
   ROC, ATR, Bollinger, ADX, MFI, …).
 
-Gap: the dataset has **no ETFs**, so the paper's SPY/QQQ are currently dropped.
+~~Gap: the dataset has no ETFs.~~ **Resolved** — SPY/QQQ are in. **P0 done.**
 
 ---
 
