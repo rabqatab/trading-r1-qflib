@@ -48,6 +48,8 @@ trading-r1-qflib/
 │   ├── labeling.py       #   volatility 5-class labels (Algorithm S1) — SFT/RL target
 │   ├── macro_pit.py      #   fix delivered macro release_date leak  → macro_pit.parquet
 │   ├── insider_pit.py    #   recover insider txn-type from text     → *_pit.parquet
+│   ├── fundamentals_pit.py# normalize the two revenue XBRL tags     → *_pit.parquet
+│   ├── multimodal_context.py# PIT join of news/fundamentals/sentiment/macro
 │   └── sft/              #   sub-project 2: build_dataset · train (LoRA) · README
 ├── qf-lib-harness/       # submodule → github.com/ico1036/qf-lib-harness (frozen, read-only)
 ├── data/                 # gitignored: prices, qflib_data_store/ (multi-modal), sft_adapter_v0/
@@ -154,8 +156,10 @@ future-dated leakage invalidates the backtest.
     data (leak-safe); eval token-acc ~80%. GB10 compatibility gate cleared.
   - 🔜 teacher distillation (Qwen3-32B) to replace templated rationale, then
     **GRPO** RL with the structure/evidence/decision rewards.
-- **Data integration** 🔜 join news/fundamentals/sentiment/macro into the
-  snapshot by PIT timestamp ([`docs/DATA_STORE.md`](docs/DATA_STORE.md)).
+- **Data integration** ✅ news/fundamentals/sentiment/macro join the snapshot by
+  PIT timestamp (`compare_lab/multimodal_context.py`, opt-in in `snapshot.py`);
+  delivered-data defects fixed (`*_pit.parquet`). See
+  [`docs/DATA_STORE.md`](docs/DATA_STORE.md). Next: feed it to the LLM row + GRPO.
 
 ## Testing
 

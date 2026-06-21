@@ -42,8 +42,11 @@ def _abbrev(x: float) -> str:
 
 
 class MarketSnapshotBuilder:
-    def __init__(self, ctx):
+    def __init__(self, ctx, multimodal=None):
         self._ctx = ctx
+        # optional MultiModalStore: when set, build() appends PIT-filtered
+        # news/fundamentals/sentiment/macro sections (paper-parity input).
+        self._multimodal = multimodal
 
     def _window(self, ticker: str, as_of) -> pd.DataFrame:
         as_of = pd.Timestamp(as_of)
@@ -84,6 +87,9 @@ class MarketSnapshotBuilder:
         lines.append("Indicators (latest):")
         for ind in _INDICATORS:
             lines.append(f"  {ind}: {_abbrev(last.get(ind, float('nan')))}")
+        if self._multimodal is not None:
+            lines.append("")
+            lines.append(self._multimodal.render_sections(ticker, as_of))
         return "\n".join(lines)
 
     def snapshot_hash(self, ticker: str, as_of) -> str:

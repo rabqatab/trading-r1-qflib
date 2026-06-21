@@ -93,16 +93,20 @@ date.
    verified in all 81 conflicts `Revenues ≥ contract`). Unit-tested
    (`compare_lab/tests/test_fundamentals_pit.py`).
 
-## How this plugs into the pipeline
+## How this plugs into the pipeline — ✅ implemented
 
-`compare_lab/snapshot.py` currently builds **price+technical only**. To feed the
-LLM the full modality set (paper parity), extend the snapshot builder to join,
-per `(ticker, as_of)`:
-- news headlines with `published_at <= as_of` (paper buckets: t−3..t / t−10..t−4 / t−30..t−11),
-- latest fundamentals from **`fundamentals_pit.parquet`** with `filing_date <= as_of`,
-- analyst changes / insider txns with their date `<= as_of`,
-- macro series from **`macro_pit.parquet`** with `release_date <= as_of`
-  (the leak-fixed file — never use raw `macro.parquet` here).
+`compare_lab/multimodal_context.py` (`MultiModalStore`) loads the `*_pit.parquet`
+files and exposes per-`(ticker, as_of)` accessors that filter strictly on each
+modality's own timestamp, then `render_sections()` emits a compact text block:
+- news with `published_at <= as_of` (last 30 d),
+- latest fundamentals (`fundamentals_pit.parquet`) with `filing_date <= as_of`,
+- analyst (`gradedate`) / insider (`sentiment_insider_pit.parquet`, `start_date`)
+  within 90 d `<= as_of`,
+- macro (`macro_pit.parquet`) latest per series with `release_date <= as_of`.
 
-Every join must use the PIT timestamp, never the reference/period date — the
-single most important rule (a future-dated row silently invalidates the backtest).
+`MarketSnapshotBuilder(ctx, multimodal=MultiModalStore())` appends these sections
+to the price+technical snapshot (opt-in; price-only remains the default). Every
+join uses the PIT timestamp, never the reference/period date — the single most
+important rule (a future-dated row silently invalidates the backtest). Tests:
+`test_multimodal_context.py` (per-modality PIT) + `test_snapshot.py` (wiring).
+ETFs (SPY/QQQ) degrade gracefully — company sections render "none".

@@ -49,3 +49,21 @@ def test_snapshot_mentions_ticker_and_indicators():
     text = MarketSnapshotBuilder(ctx).build("AAA", pd.Timestamp("2024-01-15"))
     assert "AAA" in text
     assert "rsi" in text.lower()
+
+
+def test_price_only_has_no_modality_sections():
+    snap = MarketSnapshotBuilder(_ctx_like()).build("AAA", pd.Timestamp("2024-06-28"))
+    assert "=== NEWS" not in snap and "=== MACRO" not in snap
+
+
+def test_multimodal_appends_sections_and_changes_hash():
+    from compare_lab.multimodal_context import MultiModalStore
+    ctx = _ctx_like()
+    as_of = pd.Timestamp("2024-06-28")
+    mm = MarketSnapshotBuilder(ctx, multimodal=MultiModalStore())
+    snap = mm.build("AAA", as_of)
+    assert "Indicators (latest):" in snap                 # price block preserved
+    assert "=== NEWS (last 30d) ===" in snap
+    assert "=== MACRO (latest) ===" in snap               # macro present (ticker-agnostic)
+    assert mm.snapshot_hash("AAA", as_of) != \
+        MarketSnapshotBuilder(ctx).snapshot_hash("AAA", as_of)
