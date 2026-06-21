@@ -126,8 +126,8 @@ The pipeline needs one normalized revenue line per ticker/filing period.
 **Validation:**
 
 ```bash
-.venv/bin/python -m pytest compare_lab/tests/test_fundamentals_pit.py -q
-.venv/bin/python -m pytest -q
+uv run python -m pytest compare_lab/tests/test_fundamentals_pit.py -q
+uv run python -m pytest -q
 ```
 
 ---
@@ -163,8 +163,8 @@ The pipeline needs one normalized revenue line per ticker/filing period.
 **Validation:**
 
 ```bash
-.venv/bin/python -m pytest compare_lab/tests/test_snapshot.py -q
-.venv/bin/python -m pytest -q
+uv run python -m pytest compare_lab/tests/test_snapshot.py -q
+uv run python -m pytest -q
 ```
 
 ---
@@ -190,8 +190,8 @@ The pipeline needs one normalized revenue line per ticker/filing period.
 **Validation:**
 
 ```bash
-.venv/bin/python -m pytest compare_lab/tests/test_llm_client.py compare_lab/tests/test_providers_llm.py -q
-.venv/bin/python -m pytest -q
+uv run python -m pytest compare_lab/tests/test_llm_client.py compare_lab/tests/test_providers_llm.py -q
+uv run python -m pytest -q
 ```
 
 ---
@@ -225,7 +225,7 @@ The pipeline needs one normalized revenue line per ticker/filing period.
 **Validation:**
 
 ```bash
-.venv/bin/python -m pytest -q
+uv run python -m pytest -q
 # plus a live endpoint smoke test before the full run
 ```
 
