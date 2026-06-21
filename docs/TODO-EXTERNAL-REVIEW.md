@@ -9,8 +9,9 @@
 > `checkpoint/2026-06-21-llm-sft-data` (8 grouped commits; tests **52 passed**).
 > Headline: **SFT v0 evaluated → degenerate (100% HOLD → all-cash, CR 0%)** — a
 > clean negative result; next is SFT v1 (balanced data + completion-only loss +
-> distillation) and/or P2.2 (multi-modal prompt-only run). Per-item details below
-> and in [`PROGRESS-2026-06-21.md`](PROGRESS-2026-06-21.md).
+> distillation) and/or P2.2 (multi-modal prompt-only run). **Detailed reviewer
+> response:** [`EXTERNAL-REVIEW-RESPONSE.md`](EXTERNAL-REVIEW-RESPONSE.md).
+> Per-item details below and in [`PROGRESS-2026-06-21.md`](PROGRESS-2026-06-21.md).
 
 ## Current baseline
 
