@@ -22,8 +22,8 @@ are documented in [`DATA_STORE.md`](DATA_STORE.md). Headline status below.
 | **P2** | News history archive | ◑ partial — 18 mo headlines (no article body) |
 
 **Remaining work is integration, not procurement.** Done: macro leak fix
-(`macro_pit.parquet`), insider txn-type recovery (`sentiment_insider_pit.parquet`).
-Open: normalize the two fundamentals revenue tags, extend
+(`macro_pit.parquet`), insider txn-type recovery (`sentiment_insider_pit.parquet`),
+fundamentals revenue normalization (`fundamentals_pit.parquet`). Open: extend
 `compare_lab/snapshot.py` to join all modalities by their PIT timestamp.
 See [`DATA_STORE.md`](DATA_STORE.md).
 

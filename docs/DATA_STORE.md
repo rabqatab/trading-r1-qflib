@@ -17,7 +17,7 @@ publish/filing timestamp, so we can filter to "available as of trading day *t*".
 |---|---|---|---|---|
 | `prices.parquet` | 40,348 | technical (price) | Yahoo (`auto_adjust`) | `date` |
 | `news.parquet` | 11,886 | news | Google News RSS | `published_at` |
-| `fundamentals.parquet` | 2,156 | fundamentals | SEC EDGAR (XBRL) | `filing_date` |
+| `fundamentals.parquet` → **`fundamentals_pit.parquet`** | 2,156 | fundamentals | SEC EDGAR (XBRL) | `filing_date` (✅ revenue-normalized) |
 | `sentiment_analyst.parquet` | 7,319 | sentiment (analyst) | Yahoo upgrades/downgrades | `gradedate` |
 | `sentiment_insider.parquet` | 1,332 | sentiment (insider) | Finnhub insider txns | `start_date` |
 | `macro.parquet` → **`macro_pit.parquet`** | 5,761 | macro | FRED | `release_date` (✅ leak-fixed) |
@@ -83,8 +83,15 @@ date.
    NEUTRAL 779 / SELL 538 / **BUY 15**. Only open-market **Purchase** maps to BUY
    (grants/gifts/exercises carry no directional signal). Unit-tested
    (`compare_lab/tests/test_insider_pit.py`).
-3. **Two revenue concepts** in fundamentals — pick/normalize one revenue line
-   per ticker (firms differ in which XBRL tag they file).
+3. **Two revenue concepts in fundamentals — ✅ FIXED.** `Revenues` (total) and
+   `RevenueFromContractWithCustomerExcludingAssessedTax` (ASC 606); some filings
+   carry both (`Revenues` is the superset). `compare_lab/fundamentals_pit.py`
+   (`normalize_revenue`) collapses them to one canonical **`Revenue`** line per
+   (ticker, period_end, filing_date, fiscal_period), preferring `Revenues`, and
+   adds a `concept_normalized` column (non-revenue concepts unchanged). Output:
+   **`fundamentals_pit.parquet`** (2,156→2,075 rows; 312 Revenue rows;
+   verified in all 81 conflicts `Revenues ≥ contract`). Unit-tested
+   (`compare_lab/tests/test_fundamentals_pit.py`).
 
 ## How this plugs into the pipeline
 
@@ -92,7 +99,7 @@ date.
 LLM the full modality set (paper parity), extend the snapshot builder to join,
 per `(ticker, as_of)`:
 - news headlines with `published_at <= as_of` (paper buckets: t−3..t / t−10..t−4 / t−30..t−11),
-- latest fundamentals with `filing_date <= as_of`,
+- latest fundamentals from **`fundamentals_pit.parquet`** with `filing_date <= as_of`,
 - analyst changes / insider txns with their date `<= as_of`,
 - macro series from **`macro_pit.parquet`** with `release_date <= as_of`
   (the leak-fixed file — never use raw `macro.parquet` here).
