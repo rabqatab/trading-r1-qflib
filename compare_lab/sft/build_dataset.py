@@ -82,6 +82,8 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="compare_lab/sft/data")
     ap.add_argument("--every", type=int, default=SAMPLE_EVERY)
+    ap.add_argument("--balance", action="store_true",
+                    help="down-sample dominant classes (anti-HOLD-collapse)")
     args = ap.parse_args()
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
@@ -104,11 +106,26 @@ def main() -> int:
             ind = _indicators(snap)
             user = _PROMPT_HEADER + snap
             assistant = _thesis(label, ind, seed=f"{t}-{d.date()}")
-            records.append({"messages": [
+            records.append({"label": label, "messages": [
                 {"role": "user", "content": user},
                 {"role": "assistant", "content": assistant},
             ]})
             dist[label] = dist.get(label, 0) + 1
+
+    if args.balance:
+        # cap each class at the 2nd-smallest class count (down-sample the
+        # dominant HOLD/BUY so the decision token isn't a constant-HOLD prior).
+        counts = sorted(dist.values())
+        cap = counts[1] if len(counts) > 1 else counts[0]
+        by_cls: dict[str, list] = {}
+        for r in records:
+            by_cls.setdefault(r["label"], []).append(r)
+        records = [r for cls in sorted(by_cls)
+                   for r in by_cls[cls][:cap]]          # stable (date-ordered)
+        dist = {k: min(v, cap) for k, v in dist.items()}
+        print(f"[balance] cap={cap} per class -> {len(records)} records")
+
+    records = [{"messages": r["messages"]} for r in records]
 
     # deterministic split (90/10) by record hash
     train, val = [], []

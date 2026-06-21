@@ -20,9 +20,12 @@ def main() -> int:
     ap.add_argument("--model", default="Qwen/Qwen3-4B-Instruct-2507")
     ap.add_argument("--data", default="compare_lab/sft/data")
     ap.add_argument("--out", default="compare_lab/sft/out")
-    ap.add_argument("--epochs", type=float, default=1.0)
+    ap.add_argument("--epochs", type=float, default=2.0)
     ap.add_argument("--max-seq", type=int, default=2048)
-    ap.add_argument("--lr", type=float, default=2e-4)
+    ap.add_argument("--lr", type=float, default=1e-4)
+    ap.add_argument("--completion-only", action="store_true",
+                    help="mask the prompt; train loss only on the assistant turn "
+                         "(fixes the v0 HOLD-collapse from full-sequence loss)")
     ap.add_argument("--smoke", action="store_true",
                     help="tiny subset + 3 steps to verify GB10 compatibility")
     args = ap.parse_args()
@@ -67,6 +70,7 @@ def main() -> int:
         eval_strategy="no" if args.smoke else "epoch",
         max_length=args.max_seq,
         packing=False,
+        assistant_only_loss=args.completion_only,
         report_to=[],
     )
 
