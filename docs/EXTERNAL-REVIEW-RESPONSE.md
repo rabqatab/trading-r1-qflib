@@ -21,7 +21,8 @@ degenerate) that we think is the most useful thing the harness produced.
   — it does *not* beat the prompt-only baseline. The comparison harness caught a
   trained model being *worse* than the untrained one, quantitatively. Root cause
   identified (full-sequence loss + class imbalance); the fix (**SFT v1**:
-  completion-only loss + class balancing) is training now.
+  completion-only loss + class balancing) has been launched as a separate
+  training job and still requires adapter verification/backtesting.
 - Three delivered-data point-in-time defects were found and fixed (each
   unit-tested), so the multi-modal data is now leak-safe and join-ready.
 
@@ -110,7 +111,7 @@ constant HOLD. The two are consistent once you see the cause:
 
 This is exactly the failure mode the paper avoids by using teacher-distilled,
 evidence-grounded rationales and a GRPO **decision** reward rather than templated
-text. Our **SFT v1** (training now) applies the two cheap structural fixes first:
+text. Our **SFT v1** plan applies the two cheap structural fixes first:
 
 - **Completion-only loss** (`assistant_only_loss` / prompt masking) — grade only
   the assistant turn. *Smoke evidence it bites:* loss rose 1.2 → 3.2 and token-acc
@@ -164,7 +165,8 @@ comparison analysis: [`2026-06-21-three-way-comparison-memo.md`](2026-06-21-thre
 
 ## Open items / next
 
-1. **SFT v1** — finishing now; will re-probe (collapse fixed?) and backtest its row.
+1. **SFT v1** — training job launched; verify adapter materialization, re-probe
+   (collapse fixed?), and then backtest its row.
 2. **P2.2** — re-run the prompt-only LLM with full multi-modal snapshots
    (`LLMProvider(multimodal=…)`), to see whether richer input moves the untrained
    signal before training.

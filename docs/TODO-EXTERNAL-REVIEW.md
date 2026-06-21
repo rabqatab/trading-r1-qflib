@@ -233,8 +233,10 @@ uv run python -m pytest -q
 
 ### P2.2 Re-run prompt-only LLM with full multi-modal snapshots
 
-**Status:** Feasible after P1.2.  
-**Reason:** The full multi-modal data exists but is not yet joined into snapshots.
+**Status:** Feasible now; still open.  
+**Reason:** The full multi-modal data exists and the PIT-safe snapshot join is
+implemented. What remains is to run the prompt-only LLM with `multimodal=`
+enabled and compare it against the price+technical-only baseline.
 
 **Goal:** Determine whether adding news/fundamentals/sentiment/macro changes the prompt-only LLM signal quality before training.
 

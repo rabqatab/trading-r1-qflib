@@ -93,10 +93,12 @@ is the case *for* training, not against the harness.
 1. **Bull-market regime.** 2024-01→2026-04 was a strong up-market; equal-weight
    wins almost by definition. The LLM's edge shows in *risk* (MDD, correlation),
    not return. A bear/sideways slice would test the thesis better.
-2. **Price+technical only.** The LLM reasons over a thin slice of the paper's
-   inputs. The full multi-modal data (news/fundamentals/sentiment/macro) has now
-   landed ([`DATA_STORE.md`](DATA_STORE.md)) but is not yet joined into the
-   snapshot — the next integration step.
+2. **The reported LLM numbers are still price+technical only.** The full
+   multi-modal data (news/fundamentals/sentiment/macro) has landed and the
+   PIT-safe snapshot join is implemented ([`DATA_STORE.md`](DATA_STORE.md)), but
+   the prompt-only LLM comparison has not yet been re-run with `multimodal=`
+   enabled. Therefore the table above should still be read as the
+   price+technical baseline, not as the final paper-parity multi-modal result.
 3. **8.2 % unparseable** LLM replies degrade to HOLD. Now surfaced: the provider
    reports a `parse_stats` no-tag rate and warns past 20% (`run_comparison`
    prints it). Still open: tighten the prompt / add grammar-constrained decode.
