@@ -87,10 +87,10 @@ m qf-lib-harness
 
 ```bash
 cd /home/alphabridge/Study/tradingR1_qflib
-.venv/bin/python -m pytest -q
+uv run python -m pytest -q
 ```
 
-Expected: `36 passed`.
+Expected: `36 passed` at review time — **now `52 passed`** after P1–P2.1.
 
 ---
 
