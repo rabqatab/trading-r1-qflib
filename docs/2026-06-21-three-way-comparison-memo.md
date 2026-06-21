@@ -97,8 +97,9 @@ is the case *for* training, not against the harness.
    inputs. The full multi-modal data (news/fundamentals/sentiment/macro) has now
    landed ([`DATA_STORE.md`](DATA_STORE.md)) but is not yet joined into the
    snapshot — the next integration step.
-3. **8.2 % unparseable** LLM replies degrade to HOLD; tighten the prompt /
-   add a grammar-constrained decode.
+3. **8.2 % unparseable** LLM replies degrade to HOLD. Now surfaced: the provider
+   reports a `parse_stats` no-tag rate and warns past 20% (`run_comparison`
+   prints it). Still open: tighten the prompt / add grammar-constrained decode.
 
 ---
 

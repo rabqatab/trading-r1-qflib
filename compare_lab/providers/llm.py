@@ -30,37 +30,59 @@ _PROMPT_HEADER = (
 )
 
 
-def parse_decision(text: str) -> str:
+def parse_decision_status(text: str) -> tuple[str, bool]:
+    """Return (decision, parsed). `parsed` is False when no [[[CLASS]]] tag was
+    found — the decision then falls back to HOLD, but the caller can count it."""
     matches = _PATTERN.findall(text or "")
     if not matches:
-        return "HOLD"
-    return matches[-1].upper()
+        return "HOLD", False
+    return matches[-1].upper(), True
+
+
+def parse_decision(text: str) -> str:
+    return parse_decision_status(text)[0]
 
 
 class LLMProvider(SignalProvider):
     name = "llm_prompt_only"
 
-    def __init__(self, client: VLLMClient, max_positions: int = MAX_POSITIONS):
+    def __init__(self, client: VLLMClient, max_positions: int = MAX_POSITIONS,
+                 max_no_tag_rate: float | None = 0.20, multimodal=None):
         self._client = client
         self._builder = None
         self.max_positions = max_positions
+        # warn (don't crash) if more than this fraction of replies are unparseable
+        self.max_no_tag_rate = max_no_tag_rate
+        self._multimodal = multimodal
+        self.parse_stats: dict[str, float] = {"total": 0, "no_tag": 0,
+                                              "no_tag_rate": 0.0}
 
     def weights(self, ctx, rebal_dates: pd.DatetimeIndex) -> pd.DataFrame:
-        self._builder = MarketSnapshotBuilder(ctx)
+        self._builder = MarketSnapshotBuilder(ctx, multimodal=self._multimodal)
         cols = list(ctx.universe)
         w = pd.DataFrame(0.0, index=rebal_dates, columns=cols)
         size = 1.0 / self.max_positions
+        total = no_tag = 0
         for d in rebal_dates:
             strengths: dict[str, int] = {}
             for t in cols:
                 snap = self._builder.build(t, d)
                 key = self._builder.snapshot_hash(t, d)
                 reply = self._client.complete(_PROMPT_HEADER + snap, key=key)
-                decision = parse_decision(reply)
+                decision, parsed = parse_decision_status(reply)
+                total += 1
+                no_tag += (not parsed)
                 if decision in _HELD:
                     strengths[t] = _STRENGTH[decision]
             # cap to budget by class strength (ties: stable order)
             held = sorted(strengths, key=lambda t: (-strengths[t], cols.index(t)))
             for t in held[: self.max_positions]:
                 w.at[d, t] = size
+        rate = no_tag / total if total else 0.0
+        self.parse_stats = {"total": total, "no_tag": no_tag, "no_tag_rate": rate}
+        if self.max_no_tag_rate is not None and rate > self.max_no_tag_rate:
+            print(f"[compare_lab] WARNING: LLM no-tag rate {rate:.1%} "
+                  f"({no_tag}/{total}) exceeds {self.max_no_tag_rate:.0%} — "
+                  f"unparseable replies fell back to HOLD; tighten the prompt "
+                  f"or add grammar-constrained decoding.")
         return w

@@ -62,6 +62,10 @@ def main() -> int:
     for p in providers:
         print(f"[compare_lab] {p.name}: computing weights ...")
         w = p.weights(ctx, rebal)
+        stats = getattr(p, "parse_stats", None)
+        if stats and stats.get("total"):
+            print(f"[compare_lab] {p.name}: parse no-tag rate "
+                  f"{stats['no_tag_rate']:.1%} ({stats['no_tag']}/{stats['total']})")
         print(f"[compare_lab] {p.name}: backtesting ...")
         returns = run_backtest(w, ctx)
         oos = returns[(returns.index >= pd.Timestamp(OOS_START))
