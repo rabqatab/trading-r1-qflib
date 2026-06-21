@@ -27,7 +27,7 @@
 - [x] Insider transaction type recovered via `compare_lab/insider_pit.py` → `sentiment_insider_pit.parquet`.
 - [x] SFT v0 trained for Qwen3-4B LoRA; adapter stored in `data/sft_adapter_v0/`.
 - [x] Documentation updated: `docs/DATA_STORE.md`, `docs/PROGRESS-2026-06-21.md`, `docs/2026-06-21-three-way-comparison-memo.md`.
-- [x] Tests pass: `36 passed`.
+- [x] Tests pass: `36 passed` (at review time; now **52 passed**).
 
 ### Current repository caution
 
