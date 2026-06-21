@@ -109,11 +109,25 @@ is the case *for* training, not against the harness.
   it earns its row. It does **not** beat buy-and-hold on return in this regime,
   and we should not claim it does.
 - This motivates the training work precisely: can **SFT → GRPO** lift the LLM's
-  return (express more of its 58 % conviction, cut the 8 % NO_TAG) *while keeping*
-  the low correlation and drawdown? That is the Sub-project 2 hypothesis —
-  **SFT v0 is now trained** (LoRA on Qwen3-4B, eval token-acc ~80 %,
-  `data/sft_adapter_v0/`); the open step is to serve it (vLLM + LoRA) and put its
-  row through this same backtest.
+  return *while keeping* the low correlation and drawdown? That is the
+  Sub-project 2 hypothesis.
+
+### SFT v0 evaluation (P2.1) — a clean negative result
+
+Served the SFT v0 LoRA (`data/sft_adapter_v0/`) with vLLM `--enable-lora` and
+probed it against the base model on a stride-sample of cached prompts:
+
+| | base (prompt-only) | SFT v0 |
+|---|---|---|
+| decision mix (60 probes) | StrongBuy 32 / Hold 17 / Sell 6 / Buy 3 / StrongSell 2 | **Hold 60** |
+
+**SFT v0 collapsed to 100 % HOLD** → holds nothing → all-cash → **CR 0 %, MDD 0 %**.
+It does not beat prompt-only (or anything). Root cause: the v0 *templated* rationale
+teaches the boilerplate (eval token-acc ~80 % is mostly template tokens) while the
+decision token degenerates to the majority class. This is exactly why the paper
+uses teacher-distilled, evidence-grounded rationales + a GRPO decision reward, not
+templates. **SFT v1 fixes:** class-balanced data (down-sample HOLD), completion-only
+loss masking, more epochs / lower LR, and ultimately teacher distillation.
 - Immediate, cheap improvements: add a parse-rate guardrail, join the multi-modal
   snapshot, and add a bear-slice to the report.
 

@@ -18,6 +18,10 @@ from compare_lab.config import CACHE_DIR
 # whatever vLLM server is up (e.g. a sparkq job on a non-default port).
 DEFAULT_BASE_URL = os.environ.get("VLLM_BASE_URL", "http://localhost:8000/v1")
 DEFAULT_MODEL = os.environ.get("VLLM_MODEL", "Qwen/Qwen3-4B")
+# Cache is keyed by snapshot hash only (model-agnostic), so a different model
+# (e.g. an SFT LoRA) MUST use a different cache dir or it reuses the base
+# replies. Override per run with VLLM_CACHE_DIR.
+DEFAULT_CACHE_DIR = Path(os.environ.get("VLLM_CACHE_DIR", str(CACHE_DIR)))
 
 
 def _default_transport(base_url: str, model: str) -> Callable[[str], str]:
@@ -43,7 +47,7 @@ class VLLMClient:
         transport: Callable[[str], str] | None = None,
         base_url: str = DEFAULT_BASE_URL,
         model: str = DEFAULT_MODEL,
-        cache_dir: Path = CACHE_DIR,
+        cache_dir: Path = DEFAULT_CACHE_DIR,
     ):
         self._transport = transport or _default_transport(base_url, model)
         self._cache_dir = Path(cache_dir)

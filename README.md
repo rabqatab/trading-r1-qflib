@@ -22,7 +22,7 @@ evaluation harness so the numbers are actually comparable:
 |---|---|---|
 | **#3** | **Quant factor** (12-1 momentum) | ✅ running |
 | **#2** | **Prompt-only open-source LLM** (Qwen3-4B) → 5-class signal | ✅ **landed** (provenance-verified) |
-| **#1** | **Trained Trading-R1** (Qwen-class, SFT → GRPO) | 🟢 **SFT v0 trained** (LoRA); GRPO next |
+| **#1** | **Trained Trading-R1** (Qwen-class, SFT → GRPO) | 🟡 SFT v0 trained + evaluated → **degenerate (all-HOLD)**; v1 + GRPO next |
 
 Every approach emits the same thing — a **target-weight matrix
 `[date × ticker]`** — which is run through a single
