@@ -3,6 +3,11 @@
 > **목적:** "데이터를 다 받았다"고 가정한 뒤, 그 데이터가 백테스트/학습 인풋으로
 > 쓸 만한지 판정하는 현실적 검수 루브릭. 근거: [`DATA_REQUIREMENTS.md`](DATA_REQUIREMENTS.md),
 > [`trading-r1-paper-summary.md`](trading-r1-paper-summary.md) §2, `compare_lab/snapshot.py`.
+>
+> **통합 노트 (2026-06-22):** 데이터는 `data/qflib_data_store/`에 있고, `validate_data.py`는
+> 누출 수정본 `*_pit.parquet`(`compare_lab/{macro,insider,fundamentals}_pit.py`)을 우선 검증한다.
+> 현재 전 모달리티 **all-hard-gates PASS, 가중종합 98.6** (G3의 SPY/QQQ는 이제 포함됨;
+> macro `release_date` 누출은 새 `G2_macro_release_lag` 게이트가 잡는다 — [`DATA_STORE.md`](DATA_STORE.md)).
 
 ## 0. 설계 원칙
 

@@ -8,14 +8,18 @@ import json
 from pathlib import Path
 import numpy as np, pandas as pd
 
-DS = Path(__file__).resolve().parent / "data_store"
+DS = Path(__file__).resolve().parent / "data" / "qflib_data_store"
 WEIGHTS = {"price": 0.35, "news": 0.20, "fundamentals": 0.20, "sentiment": 0.15, "macro": 0.10}
 UNIVERSE = ["NVDA","MSFT","AAPL","META","AMZN","TSLA","BRK-B","JPM","LLY","JNJ","XOM","CVX","SPY","QQQ"]
 # published_at field per modality
 PIT = {"fundamentals":"filing_date","macro":"release_date","analyst":"gradedate","insider":"start_date"}
+# prefer the leak-fixed *_pit.parquet variants (compare_lab/{macro,insider,fundamentals}_pit.py)
+PIT_PREFERRED = {"macro":"macro_pit", "fundamentals":"fundamentals_pit",
+                 "sentiment_insider":"sentiment_insider_pit"}
 
 def _p(name):
-    f = DS/f"{name}.parquet"
+    pit = DS/f"{PIT_PREFERRED.get(name, name)}.parquet"
+    f = pit if pit.exists() else DS/f"{name}.parquet"
     return pd.read_parquet(f) if f.exists() else None
 
 def score_price(df):
@@ -70,7 +74,11 @@ def main():
     mc = _p("macro")
     if mc is not None:
         g,a,nz = score_pit(mc,"release_date",["series","date"])
-        mc2=mc.copy(); mc2["date"]=pd.to_datetime(mc2["date"])
+        mc2=mc.copy(); mc2["date"]=pd.to_datetime(mc2["date"]); mc2["release_date"]=pd.to_datetime(mc2["release_date"])
+        # G2 (macro): monthly series publish in a LATER month than the reference
+        # date — release_date==date is the delivered-data leak (see macro_pit.py).
+        _mon = mc2[mc2.series.isin({"CPIAUCSL","UNRATE","FEDFUNDS"})]
+        g["G2_macro_release_lag"]=bool((_mon["release_date"]>_mon["date"]).all()) if len(_mon) else True
         a["completeness"]=100.0; a["timeliness"]=100.0 if (pd.Timestamp.today().normalize()-mc2["date"].max()).days<=10 else 70.0
         a["consistency"]=100.0; a["accuracy"]=100.0; a["shape_conformance"]=100.0
         report["macro"]={"hard_pass":all(g.values()),"gates":g,"axes":a,

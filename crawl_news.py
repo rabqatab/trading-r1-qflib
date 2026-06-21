@@ -8,8 +8,8 @@ from email.utils import parsedate_to_datetime
 from pathlib import Path
 import pandas as pd
 
-OUT = Path(__file__).resolve().parent / "news_parts"; OUT.mkdir(exist_ok=True)
-DS = Path(__file__).resolve().parent / "data_store"
+OUT = Path(__file__).resolve().parent / "data" / "news_parts"; OUT.mkdir(parents=True, exist_ok=True)
+DS = Path(__file__).resolve().parent / "data" / "qflib_data_store"; DS.mkdir(parents=True, exist_ok=True)
 QUERY = {
  "NVDA":"Nvidia stock","MSFT":"Microsoft stock","AAPL":"Apple stock",
  "META":"Meta Platforms stock","AMZN":"Amazon stock","TSLA":"Tesla stock",
