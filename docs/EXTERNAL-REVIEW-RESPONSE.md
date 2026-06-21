@@ -37,7 +37,7 @@ generated outputs (`compare_lab/output*/`, `compare_lab/sft/data/`) are
 `.gitignore`-d — kept local, not committed. The frozen `qf-lib-harness` submodule
 pointer is deliberately untouched. Validation: `uv run python -m pytest -q` → 52.
 
-### P1.1 — normalize fundamentals revenue ✅  (commit `11c9c5d`)
+### P1.1 — normalize fundamentals revenue ✅  (commit *"normalize fundamentals revenue XBRL tags"*)
 `fundamentals.parquet` carried two XBRL revenue tags — `Revenues` (total) and
 `RevenueFromContractWithCustomerExcludingAssessedTax` (ASC 606). 81 filing-periods
 carried **both**. `compare_lab/fundamentals_pit.py` collapses them to one canonical
@@ -48,7 +48,7 @@ superset: insurance investment income, energy other-income, etc.). Adds
 `fundamentals_pit.parquet` (2,156 → 2,075 rows; 312 Revenue rows). Tests:
 `test_fundamentals_pit.py` (4).
 
-### P1.2 — multi-modal PIT snapshot join ✅  (commit `0a6367f`)
+### P1.2 — multi-modal PIT snapshot join ✅  (commit *"PIT multi-modal snapshot join"*)
 `compare_lab/multimodal_context.py` (`MultiModalStore`) loads the `*_pit.parquet`
 files and exposes per-`(ticker, as_of)` accessors that filter strictly on each
 modality's own timestamp; `render_sections()` emits a compact text block.
@@ -60,7 +60,7 @@ default, so the existing LLM/SFT paths are unchanged). The one invariant —
 news `published_at`, fundamentals `filing_date`, analyst `gradedate`, insider
 `start_date`, macro `release_date`.
 
-### P1.3 — LLM parse-rate guardrail ✅  (commit `b81d6e2`)
+### P1.3 — LLM parse-rate guardrail ✅  (commit *"add LLM parse-rate guardrail"*)
 `parse_decision_status()` returns `(decision, parsed)`; `LLMProvider` accumulates a
 `parse_stats` dict (`total`, `no_tag`, `no_tag_rate`) and **warns past a
 configurable 20 %** (the prompt-only run's real rate was 8.2 %); `run_comparison`
@@ -68,7 +68,7 @@ prints it. Fallback-to-HOLD stays explicit. (`LLMProvider` also gained an opt-in
 `multimodal=` arg, wiring P1.2 into the prompt for a future multi-modal run.)
 Tests: `test_providers_llm.py` (+2).
 
-### P2.1 — serve & evaluate SFT v0 ✅  (commit `4ff9c0a`) — **negative result**
+### P2.1 — serve & evaluate SFT v0 ✅  (commit *"SFT v0 is degenerate (all-HOLD)"*) — **negative result**
 Served the SFT-v0 LoRA (`data/sft_adapter_v0/`) with vLLM `--enable-lora`. A
 **cache-isolation gotcha** had to be fixed first: the response cache is keyed by
 snapshot hash only (model-agnostic), so a second model would silently reuse the
