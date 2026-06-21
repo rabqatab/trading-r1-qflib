@@ -110,3 +110,8 @@ join uses the PIT timestamp, never the reference/period date — the single most
 important rule (a future-dated row silently invalidates the backtest). Tests:
 `test_multimodal_context.py` (per-modality PIT) + `test_snapshot.py` (wiring).
 ETFs (SPY/QQQ) degrade gracefully — company sections render "none".
+
+**Quality gates:** [`DATA_QC_RUBRIC.md`](DATA_QC_RUBRIC.md) defines hard gates
+G1–G5 (incl. the macro `release_date` leak as `G2_macro_release_lag`); run
+`uv run python validate_data.py` to score the store (it validates the
+`*_pit.parquet` variants). Current: all hard gates pass, weighted 98.6.

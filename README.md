@@ -51,9 +51,11 @@ trading-r1-qflib/
 │   ├── fundamentals_pit.py# normalize the two revenue XBRL tags     → *_pit.parquet
 │   ├── multimodal_context.py# PIT join of news/fundamentals/sentiment/macro
 │   └── sft/              #   sub-project 2: build_dataset · train (LoRA) · README
+├── validate_data.py      # data QC gates G1–G5 + scored quality (docs/DATA_QC_RUBRIC.md)
+├── crawl_news.py         # Google-News-RSS news crawler (reproduces news.parquet)
 ├── qf-lib-harness/       # submodule → github.com/ico1036/qf-lib-harness (frozen, read-only)
 ├── data/                 # gitignored: prices, qflib_data_store/ (multi-modal), sft_adapter_v0/
-├── docs/                 # DATA_STORE.md · DATA_REQUIREMENTS.md · memo · superpowers/{specs,plans}
+├── docs/                 # DATA_STORE · DATA_QC_RUBRIC · DATA_REQUIREMENTS · memo · superpowers/{specs,plans}
 └── tradingR1.pdf         # the paper
 ```
 
@@ -135,7 +137,10 @@ modalities into the snapshot by their PIT timestamp), not procurement.
 | macro (FRED, 8 series) | `macro_pit.parquet` ✅ | 2022–2026 (leak-fixed) |
 
 Procurement history + per-source paper mapping:
-[`docs/DATA_REQUIREMENTS.md`](docs/DATA_REQUIREMENTS.md).
+[`docs/DATA_REQUIREMENTS.md`](docs/DATA_REQUIREMENTS.md). **Quality gates:**
+[`docs/DATA_QC_RUBRIC.md`](docs/DATA_QC_RUBRIC.md) (G1–G5 + scored) — run
+`uv run python validate_data.py` (currently all hard gates pass, weighted 98.6;
+the macro leak is caught by a `G2_macro_release_lag` gate).
 
 **Hard requirement:** every non-price item must be joined on its real
 **publish/filing timestamp** ("available as of trading day *t*") — any

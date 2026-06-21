@@ -5,8 +5,10 @@
 > Status checked against current repo state on 2026-06-21.  
 > Baseline health: `36 passed`; repo has many uncommitted/untracked files.
 
-> **RESOLUTION (2026-06-22):** P0, P1.1, P1.2, P1.3, P2.1 all **done** on branch
-> `checkpoint/2026-06-21-llm-sft-data` (8 grouped commits; tests **52 passed**).
+> **RESOLUTION (2026-06-22):** P0, P1.1, P1.2, P1.3, P2.1 all **done** and merged
+> to `main` (grouped commits; tests **52 passed**). Data QC tooling from PR #1
+> (`validate_data.py`, [`DATA_QC_RUBRIC.md`](DATA_QC_RUBRIC.md)) reconciled in —
+> all hard gates pass, weighted 98.6.
 > Headline: **SFT v0 evaluated → degenerate (100% HOLD → all-cash, CR 0%)** — a
 > clean negative result; next is SFT v1 (balanced data + completion-only loss +
 > distillation) and/or P2.2 (multi-modal prompt-only run). **Detailed reviewer
