@@ -145,8 +145,26 @@ shifts in both directions (HOLD→SELL, HOLD→StrongBuy, StrongBuy→HOLD). The
 single-variable change (full-sequence → completion-only loss) restored the
 decision signal — confirming the v0 root-cause diagnosis. Training: eval
 token-acc 80 % → **98.6 %**, train-loss 0.53 → 0.089 (`data/sft_adapter_v1/`).
-A full SFT-v1 backtest row is running (now worthwhile — the signal is no longer
-all-cash). Next after that: teacher distillation + GRPO.
+
+**Full SFT-v1 backtest** (14-ticker, same OOS window; `compare_lab/output_sftv1/`):
+
+| Strategy | Cumulative | Sharpe | Max DD |
+|---|---|---|---|
+| Equal-weight | +143 % | 1.04 | 32.3 % |
+| 12-1 Momentum | +52 % | 0.70 | 19.6 % |
+| Prompt-only LLM | +36 % | 0.55 | 16.4 % |
+| **SFT v1** | +29 % | 0.53 | **7.9 %** |
+
+SFT v1 is the **most defensive** strategy in the set: lowest return, but **half
+the drawdown of prompt-only** (7.9 % vs 16.4 %) at a near-identical Sharpe.
+Training made it risk-averse — its decisions are 39 % StrongBuy / 41 % Hold /
+18 % Sell (selective long book under the 8-position cap). It does **not** beat
+prompt-only on return/Sharpe, so SFT-v0→v1 fixed the *collapse* but did not (yet)
+lift return. **One unambiguous training win:** the parse-rate — v1 emits a valid
+`[[[CLASS]]]` on **100 %** of inputs (NO_TAG 0 %, vs the prompt-only baseline's
+8.2 %); completion-only SFT solved the format leak that P1.3's guardrail only
+*surfaced*. Next: teacher distillation (vary the rationale, currently templated)
++ GRPO decision reward to push return while keeping the drawdown/parse wins.
 - Immediate, cheap improvements: add a parse-rate guardrail, join the multi-modal
   snapshot, and add a bear-slice to the report.
 
