@@ -11,12 +11,16 @@ from __future__ import annotations
 
 import glob
 import json
+import os
 import sys
 from collections import Counter
 
 import compare_lab  # noqa: F401
 from compare_lab.llm_client import _default_transport, DEFAULT_BASE_URL
 from compare_lab.providers.llm import parse_decision
+
+# LoRA model name to probe (the served adapter id); override with VLLM_MODEL.
+SFT_MODEL = os.environ.get("VLLM_MODEL", "sft-v0")
 
 _ORDER = ["STRONG_SELL", "SELL", "HOLD", "BUY", "STRONG_BUY"]
 
@@ -27,7 +31,8 @@ def main() -> int:
                    if "smoke" not in f)
     stride = max(1, len(files) // n)
     sample = files[::stride][:n]
-    call = _default_transport(DEFAULT_BASE_URL, "sft-v0")
+    call = _default_transport(DEFAULT_BASE_URL, SFT_MODEL)
+    print(f"probing SFT model: {SFT_MODEL}")
 
     base_dist, sft_dist, shifts = Counter(), Counter(), Counter()
     changed = 0

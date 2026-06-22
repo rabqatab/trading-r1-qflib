@@ -128,8 +128,25 @@ It does not beat prompt-only (or anything). Root cause: the v0 *templated* ratio
 teaches the boilerplate (eval token-acc ~80 % is mostly template tokens) while the
 decision token degenerates to the majority class. This is exactly why the paper
 uses teacher-distilled, evidence-grounded rationales + a GRPO decision reward, not
-templates. **SFT v1 fixes:** class-balanced data (down-sample HOLD), completion-only
-loss masking, more epochs / lower LR, and ultimately teacher distillation.
+templates.
+
+### SFT v1 (P2.1 follow-up) — the collapse is fixed ✅
+
+v1 applies two structural fixes: **completion-only loss** (`assistant_only_loss` —
+grade only the assistant turn, so the gradient lands on the decision, not the
+prompt) and **class balancing** (down-sample HOLD 37 % → 24 %). Same probe:
+
+| | base | SFT v0 | **SFT v1** |
+|---|---|---|---|
+| decision mix (60) | SB 32 / H 17 / S 6 / B 3 / SS 2 | **H 60** | **H 24 / SB 23 / S 11 / B 2 / SS 0** |
+
+v1 produces a **genuine, non-degenerate distribution** (was 100 % HOLD), with
+shifts in both directions (HOLD→SELL, HOLD→StrongBuy, StrongBuy→HOLD). The
+single-variable change (full-sequence → completion-only loss) restored the
+decision signal — confirming the v0 root-cause diagnosis. Training: eval
+token-acc 80 % → **98.6 %**, train-loss 0.53 → 0.089 (`data/sft_adapter_v1/`).
+A full SFT-v1 backtest row is running (now worthwhile — the signal is no longer
+all-cash). Next after that: teacher distillation + GRPO.
 - Immediate, cheap improvements: add a parse-rate guardrail, join the multi-modal
   snapshot, and add a bear-slice to the report.
 
