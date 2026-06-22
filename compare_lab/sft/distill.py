@@ -78,7 +78,6 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="compare_lab/sft/data_v2")
     ap.add_argument("--n", type=int, default=250)
-    ap.add_argument("--max-tokens", type=int, default=1600)
     args = ap.parse_args()
     from pathlib import Path
     out = Path(args.out); out.mkdir(parents=True, exist_ok=True)

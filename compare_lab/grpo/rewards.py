@@ -5,9 +5,8 @@ lesson, §6): Stage I structure (XML section shape), Stage II evidence
 (opinion + quote + source bullets), Stage III decision (asymmetric matrix vs the
 deterministic volatility label — the verifiable core).
 
-TRL usage: pass the `*_reward_func` callables to GRPOTrainer(reward_funcs=[...]).
-Each takes (prompts, completions, **kwargs) and reads the per-example `label`
-column from kwargs.
+For GRPO, wrap these at the GRPOTrainer call site (reward_funcs=[...]); the
+decision reward needs the per-example `label` from the dataset.
 """
 from __future__ import annotations
 
@@ -38,7 +37,7 @@ DECISION_MATRIX: dict[str, dict[str, float]] = {
 
 _DECISION = re.compile(r"\[\[\[\s*(STRONG_BUY|BUY|HOLD|SELL|STRONG_SELL)\s*\]\]\]",
                        re.IGNORECASE)
-_HEADER = re.compile(r"^\s*(?:#{1,6}\s+(.*)|<(\w+)>\s*)$")
+_HEADER = re.compile(r"^\s*#{1,6}\s+(.*)$")
 _BULLET = re.compile(r"^\s*[-*○•]\s+(.*)")
 _ITALIC = re.compile(r"(?<!\*)\*(?!\*)([^*]+?)\*(?!\*)")   # *quote*, not **bold**
 _SOURCE = re.compile(r"`([^`]+)`")                         # `source`
@@ -69,7 +68,7 @@ def _sections(text: str) -> list[tuple[str, str]]:
         if m:
             if name is not None:
                 out.append((name, body))
-            name = (m.group(1) or m.group(2) or "").strip().lower()
+            name = m.group(1).strip().lower()
             body = []
         elif name is not None:
             body.append(ln)
@@ -170,26 +169,3 @@ def evidence_reward(text: str) -> float:
     sec_scores = [_r_evidence_section(b) for _, b in sections]
     sec_scores = [s for s in sec_scores if s > 0]
     return _harmonic(sec_scores)
-
-
-# ---- TRL-compatible wrappers ----------------------------------------------
-
-def _texts(completions):
-    # completions may be list[str] or list[list[{"content":...}]]
-    out = []
-    for c in completions:
-        out.append(c if isinstance(c, str) else c[0]["content"])
-    return out
-
-
-def decision_reward_func(prompts=None, completions=None, label=None, **kw):
-    labels = label if label is not None else [None] * len(completions)
-    return [decision_reward(t, lab) for t, lab in zip(_texts(completions), labels)]
-
-
-def structure_reward_func(prompts=None, completions=None, **kw):
-    return [structure_reward(t) for t in _texts(completions)]
-
-
-def evidence_reward_func(prompts=None, completions=None, **kw):
-    return [evidence_reward(t) for t in _texts(completions)]
