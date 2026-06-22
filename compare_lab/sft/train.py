@@ -15,14 +15,16 @@ import argparse
 from pathlib import Path
 
 
+MODEL = "Qwen/Qwen3-4B-Instruct-2507"
+MAX_SEQ = 2048
+LR = 1e-4
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--model", default="Qwen/Qwen3-4B-Instruct-2507")
     ap.add_argument("--data", default="compare_lab/sft/data")
     ap.add_argument("--out", default="compare_lab/sft/out")
     ap.add_argument("--epochs", type=float, default=2.0)
-    ap.add_argument("--max-seq", type=int, default=2048)
-    ap.add_argument("--lr", type=float, default=1e-4)
     ap.add_argument("--completion-only", action="store_true",
                     help="mask the prompt; train loss only on the assistant turn "
                          "(fixes the v0 HOLD-collapse from full-sequence loss)")
@@ -45,9 +47,9 @@ def main() -> int:
         ds["train"] = ds["train"].select(range(min(64, len(ds["train"]))))
         ds["val"] = ds["val"].select(range(min(16, len(ds["val"]))))
 
-    tok = AutoTokenizer.from_pretrained(args.model)
+    tok = AutoTokenizer.from_pretrained(MODEL)
     model = AutoModelForCausalLM.from_pretrained(
-        args.model, torch_dtype=torch.bfloat16, device_map="cuda")
+        MODEL, torch_dtype=torch.bfloat16, device_map="cuda")
 
     peft_cfg = LoraConfig(
         r=16, lora_alpha=32, lora_dropout=0.05, bias="none",
@@ -62,13 +64,13 @@ def main() -> int:
         gradient_accumulation_steps=8,
         num_train_epochs=args.epochs,
         max_steps=3 if args.smoke else -1,
-        learning_rate=args.lr,
+        learning_rate=LR,
         bf16=True,
         gradient_checkpointing=True,
         logging_steps=5,
         save_strategy="epoch",
         eval_strategy="no" if args.smoke else "epoch",
-        max_length=args.max_seq,
+        max_length=MAX_SEQ,
         packing=False,
         assistant_only_loss=args.completion_only,
         report_to=[],
