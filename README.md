@@ -159,8 +159,9 @@ future-dated leakage invalidates the backtest.
     matches paper Table 2 (Strong-Sell→Strong-Buy: 3/12/38/32/15%).
   - ✅ SFT **v0** — LoRA on Qwen3-4B (`compare_lab/sft/`), trained on pre-2024
     data (leak-safe); eval token-acc ~80%. GB10 compatibility gate cleared.
-  - 🔜 teacher distillation (Qwen3-32B) to replace templated rationale, then
-    **GRPO** RL with the structure/evidence/decision rewards.
+  - 🟢 **GRPO rewards** built + tested (`compare_lab/grpo/rewards.py`:
+    structure/evidence/decision, §5.2); **teacher distillation** (Qwen3-30B-A3B)
+    running to replace the templated rationale for SFT v2, then **GRPO** RL.
 - **Data integration** ✅ news/fundamentals/sentiment/macro join the snapshot by
   PIT timestamp (`compare_lab/multimodal_context.py`, opt-in in `snapshot.py`);
   delivered-data defects fixed (`*_pit.parquet`). See
