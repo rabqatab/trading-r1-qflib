@@ -40,6 +40,7 @@ TRAIN_START = datetime(2017, 1, 3)
 TRAIN_END = datetime(2023, 12, 29)
 
 _TEACHER_INSTR = (
+    "/no_think\n"   # skip the <think> block so the token budget fits the thesis + decision
     "You are a senior equity analyst. The volatility-adjusted ground-truth call "
     "for this name on this date is [[[{label}]]]. Write a structured investment "
     "thesis that JUSTIFIES exactly this call using ONLY the data below.\n"
