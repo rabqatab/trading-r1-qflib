@@ -22,7 +22,7 @@ evaluation harness so the numbers are actually comparable:
 |---|---|---|
 | **#3** | **Quant factor** (12-1 momentum) | ✅ running |
 | **#2** | **Prompt-only open-source LLM** (Qwen3-4B) → 5-class signal | ✅ **landed** (provenance-verified) |
-| **#1** | **Trained Trading-R1** (Qwen-class, SFT → GRPO) | 🟡 SFT v0 trained + evaluated → **degenerate (all-HOLD)**; v1 + GRPO next |
+| **#1** | **Trained Trading-R1** (Qwen-class, SFT → GRPO) | 🟢 SFT **v1** landed — fixed the all-HOLD collapse, **most defensive** (MDD 7.9 %, NO_TAG 0 %); **v2** (teacher-distilled) trained + serving, backtest in progress; GRPO next |
 
 Every approach emits the same thing — a **target-weight matrix
 `[date × ticker]`** — which is run through a single
@@ -158,10 +158,17 @@ future-dated leakage invalidates the backtest.
   - ✅ `labeling.py` — volatility 5-class labels (Algorithm S1); distribution
     matches paper Table 2 (Strong-Sell→Strong-Buy: 3/12/38/32/15%).
   - ✅ SFT **v0** — LoRA on Qwen3-4B (`compare_lab/sft/`), trained on pre-2024
-    data (leak-safe); eval token-acc ~80%. GB10 compatibility gate cleared.
+    data (leak-safe); eval token-acc ~80% but **degenerate (all-HOLD)**.
+  - ✅ SFT **v1** — completion-only loss + class balancing fixed the collapse
+    (loss 0.53→0.089, `data/sft_adapter_v1/`, served `sft-v1`). Backtest
+    (14-ticker, `output_sftv1/`): CR +29 %, Sharpe 0.53, **MDD 7.9 %** — most
+    defensive in the set, **NO_TAG 0 %** (vs prompt-only 8.2 %). Fixed the
+    collapse; didn't lift return.
+  - 🟢 SFT **v2** — teacher distillation (Qwen3-30B-A3B, reverse-reasoning §8)
+    **done** (250 theses, `compare_lab/sft/data_v2/`); LoRA trained
+    (`data/sft_adapter_v2/`, served `sft-v2`); **backtest in progress**.
   - 🟢 **GRPO rewards** built + tested (`compare_lab/grpo/rewards.py`:
-    structure/evidence/decision, §5.2); **teacher distillation** (Qwen3-30B-A3B)
-    running to replace the templated rationale for SFT v2, then **GRPO** RL.
+    structure/evidence/decision, §5.2) — **GRPO** RL next.
 - **Data integration** ✅ news/fundamentals/sentiment/macro join the snapshot by
   PIT timestamp (`compare_lab/multimodal_context.py`, opt-in in `snapshot.py`);
   delivered-data defects fixed (`*_pit.parquet`). See

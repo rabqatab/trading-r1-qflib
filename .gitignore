@@ -15,7 +15,7 @@ __pycache__/
 data/
 output/
 compare_lab/output*/
-compare_lab/.cache/
+compare_lab/.cache*/
 compare_lab/sft/data*/
 
 # Session handoff / context artifacts (kept local, not part of the codebase)
