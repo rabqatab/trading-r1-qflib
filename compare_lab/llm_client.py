@@ -22,6 +22,9 @@ DEFAULT_MODEL = os.environ.get("VLLM_MODEL", "Qwen/Qwen3-4B")
 # (e.g. an SFT LoRA) MUST use a different cache dir or it reuses the base
 # replies. Override per run with VLLM_CACHE_DIR.
 DEFAULT_CACHE_DIR = Path(os.environ.get("VLLM_CACHE_DIR", str(CACHE_DIR)))
+# Distilled SFT-v2 writes long §8 theses; 2048 truncates ~16% before the final
+# [[[CLASS]]] line. Raise per run (e.g. 4096) so the decision tag survives.
+DEFAULT_MAX_TOKENS = int(os.environ.get("VLLM_MAX_TOKENS", "2048"))
 
 
 def _default_transport(base_url: str, model: str) -> Callable[[str], str]:
@@ -34,7 +37,7 @@ def _default_transport(base_url: str, model: str) -> Callable[[str], str]:
             model=model,
             messages=[{"role": "user", "content": prompt}],
             temperature=0.0,
-            max_tokens=2048,
+            max_tokens=DEFAULT_MAX_TOKENS,
         )
         return resp.choices[0].message.content or ""
 

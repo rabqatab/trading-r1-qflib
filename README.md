@@ -22,7 +22,7 @@ evaluation harness so the numbers are actually comparable:
 |---|---|---|
 | **#3** | **Quant factor** (12-1 momentum) | ✅ running |
 | **#2** | **Prompt-only open-source LLM** (Qwen3-4B) → 5-class signal | ✅ **landed** (provenance-verified) |
-| **#1** | **Trained Trading-R1** (Qwen-class, SFT → GRPO) | 🟢 SFT **v1** landed — fixed the all-HOLD collapse, **most defensive** (MDD 7.9 %, NO_TAG 0 %); **v2** (teacher-distilled) trained + serving, backtest in progress; GRPO next |
+| **#1** | **Trained Trading-R1** (Qwen-class, SFT → GRPO) | 🟢 SFT **v1** is the keeper — fixed the all-HOLD collapse, **most defensive** (MDD 7.9 %, NO_TAG 0 %). **v2** (teacher-distilled) evaluated → **regression** (MDD 20.7 %, NO_TAG 9.2 %); GRPO on the v1 base next |
 
 Every approach emits the same thing — a **target-weight matrix
 `[date × ticker]`** — which is run through a single
@@ -164,11 +164,13 @@ future-dated leakage invalidates the backtest.
     (14-ticker, `output_sftv1/`): CR +29 %, Sharpe 0.53, **MDD 7.9 %** — most
     defensive in the set, **NO_TAG 0 %** (vs prompt-only 8.2 %). Fixed the
     collapse; didn't lift return.
-  - 🟢 SFT **v2** — teacher distillation (Qwen3-30B-A3B, reverse-reasoning §8)
-    **done** (250 theses, `compare_lab/sft/data_v2/`); LoRA trained
-    (`data/sft_adapter_v2/`, served `sft-v2`); **backtest in progress**.
+  - ❌ SFT **v2** — teacher distillation (Qwen3-30B-A3B, reverse-reasoning §8;
+    250 theses, `data/sft_adapter_v2/`, served `sft-v2`) **evaluated → regression
+    vs v1**: CR +34 % but MDD 20.7 % (v1 7.9 %), Sharpe 0.46 (v1 0.53), and the
+    verbose §8 style fails to terminate on **9.2 %** of inputs (NO_TAG, vs v1 0 %).
+    The long distilled rationale hurt both risk and format — see the memo. Keep v1.
   - 🟢 **GRPO rewards** built + tested (`compare_lab/grpo/rewards.py`:
-    structure/evidence/decision, §5.2) — **GRPO** RL next.
+    structure/evidence/decision, §5.2) — **GRPO** RL on the **v1** base next.
 - **Data integration** ✅ news/fundamentals/sentiment/macro join the snapshot by
   PIT timestamp (`compare_lab/multimodal_context.py`, opt-in in `snapshot.py`);
   delivered-data defects fixed (`*_pit.parquet`). See

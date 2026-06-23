@@ -168,6 +168,38 @@ lift return. **One unambiguous training win:** the parse-rate — v1 emits a val
 - Immediate, cheap improvements: add a parse-rate guardrail, join the multi-modal
   snapshot, and add a bear-slice to the report.
 
-**Artifacts:** `compare_lab/output{,_14}/comparison.csv`,
+### SFT v2 (teacher distillation) — a regression, recorded ❌
+
+Distilled 250 reverse-reasoning §8 theses from a Qwen3-30B-A3B teacher
+(`sft/distill.py`: the teacher is shown the volatility label and writes a thesis
+justifying it; the stored pair is label-free snapshot → thesis), trained a fresh
+LoRA (`data/sft_adapter_v2/`, served `sft-v2`), and ran the same 14-ticker
+backtest (`compare_lab/output_sftv2/`):
+
+| Strategy | Cumulative | Sharpe | Max DD | NO_TAG |
+|---|---|---|---|---|
+| Equal-weight | +143 % | 1.04 | 32.3 % | — |
+| 12-1 Momentum | +52 % | 0.70 | 19.6 % | — |
+| SFT v1 | +29 % | 0.53 | **7.9 %** | 0 % |
+| **SFT v2** | +34 % | 0.46 | 20.7 % | **9.2 %** |
+
+**v2 is worse than v1 on every risk axis.** It lifts raw return slightly (+34 %
+vs +29 %) but loses the defensive edge that was v1's whole story — drawdown 2.6×
+higher (20.7 % vs 7.9 %), Sharpe down (0.46 vs 0.53). The distilled verbose-thesis
+style also broke format reliability: **9.2 % NO_TAG** (vs v1's 0 %), the student
+rambling past the decision and never emitting `[[[CLASS]]]`. This is *not* a
+token-budget artifact — at 4096 max-tokens the residual 151 no-tags average
+~14.8k chars (some >20k): genuine non-termination, not truncation. (The first run
+at 2048 tokens *looked* better — MDD 17.6 %, NO_TAG 16.2 % — but that was a
+mirage: truncated replies fell back to flat HOLD, which suppressed drawdown.
+Fixing truncation made risk metrics worse, confirming v2 just bets more
+aggressively.)
+
+**Verdict:** teacher distillation as configured did not help; the long §8 style
+hurts both termination and risk. Next: GRPO RL on the **v1** base (keep v1's
+parse/drawdown wins, push return with the decision reward); revisit distillation
+(shorter, decisive teacher theses) only if GRPO stalls.
+
+**Artifacts:** `compare_lab/output{,_14,_sftv1,_sftv2}/comparison.csv`,
 `compare_lab/output/oos_daily_returns.csv`, `compare_lab/output/{equity,report}.html`,
 this memo.
