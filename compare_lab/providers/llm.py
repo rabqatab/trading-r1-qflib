@@ -7,7 +7,10 @@ rank-order of class strength. (spec §4.2, §4.3)
 """
 from __future__ import annotations
 
+import os
 import re
+from concurrent.futures import ThreadPoolExecutor
+from hashlib import sha1
 
 import pandas as pd
 
@@ -15,6 +18,10 @@ from compare_lab.config import MAX_POSITIONS
 from compare_lab.llm_client import VLLMClient
 from compare_lab.providers.base import SignalProvider
 from compare_lab.snapshot import MarketSnapshotBuilder
+
+# concurrent in-flight LLM requests; vLLM batches them. Tune via env if the
+# server's KV cache (gpu-memory-utilization) starts queueing (Waiting > 0).
+_MAX_WORKERS = int(os.environ.get("LLM_CONCURRENCY", "16"))
 
 _CLASSES = ("STRONG_SELL", "SELL", "HOLD", "BUY", "STRONG_BUY")
 _HELD = {"BUY", "STRONG_BUY"}
@@ -57,19 +64,28 @@ class LLMProvider(SignalProvider):
         self.parse_stats: dict[str, float] = {"total": 0, "no_tag": 0,
                                               "no_tag_rate": 0.0}
 
+    def _reply(self, d, t) -> tuple[tuple, str]:
+        snap = self._builder.build(t, d)
+        key = sha1(snap.encode()).hexdigest()[:12]   # == snapshot_hash, one build
+        return (d, t), self._client.complete(_PROMPT_HEADER + snap, key=key)
+
     def weights(self, ctx, rebal_dates: pd.DatetimeIndex) -> pd.DataFrame:
         self._builder = MarketSnapshotBuilder(ctx, multimodal=self._multimodal)
         cols = list(ctx.universe)
         w = pd.DataFrame(0.0, index=rebal_dates, columns=cols)
         size = 1.0 / self.max_positions
+        # The (date, ticker) LLM calls are independent and I/O-bound; fan them out
+        # so the HTTP waits overlap and vLLM batches them (Running:1 -> Running:N).
+        # Cache is per-key files so concurrent writes don't collide. Assembly below
+        # stays serial + ordered -> result identical regardless of finish order.
+        pairs = [(d, t) for d in rebal_dates for t in cols]
+        with ThreadPoolExecutor(max_workers=_MAX_WORKERS) as ex:
+            replies = dict(ex.map(lambda p: self._reply(*p), pairs))
         total = no_tag = 0
         for d in rebal_dates:
             strengths: dict[str, int] = {}
             for t in cols:
-                snap = self._builder.build(t, d)
-                key = self._builder.snapshot_hash(t, d)
-                reply = self._client.complete(_PROMPT_HEADER + snap, key=key)
-                decision, parsed = parse_decision_status(reply)
+                decision, parsed = parse_decision_status(replies[(d, t)])
                 total += 1
                 no_tag += (not parsed)
                 if decision in _HELD:
