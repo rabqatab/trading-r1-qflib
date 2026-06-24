@@ -4,7 +4,7 @@
 # redirects in a nested `bash -c "..."`. Extra args ($@) pass through to train.py
 # (e.g. --smoke, --wandb).
 set -e
-pip install -q "trl>=0.12" "peft>=0.13" "datasets>=3.0" "accelerate>=1.0"
+pip install -q "trl>=0.12" "peft>=0.13" "datasets>=3.0" "accelerate>=1.0" "wandb>=0.18"
 pip uninstall -y torchao || true   # container pin version-checks against trl's transformers
 python /work/train.py --data /work/data --base-adapter /work/adapter_v1 \
   --out /work/out "$@"
