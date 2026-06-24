@@ -22,7 +22,7 @@ evaluation harness so the numbers are actually comparable:
 |---|---|---|
 | **#3** | **Quant factor** (12-1 momentum) | ✅ running |
 | **#2** | **Prompt-only open-source LLM** (Qwen3-4B) → 5-class signal | ✅ **landed** (provenance-verified) |
-| **#1** | **Trained Trading-R1** (Qwen-class, SFT → GRPO) | 🟢 SFT **v1** is the keeper — fixed the all-HOLD collapse, **most defensive** (MDD 7.9 %, NO_TAG 0 %). **v2** (teacher-distilled) evaluated → **regression** (MDD 20.7 %, NO_TAG 9.2 %); GRPO on the v1 base next |
+| **#1** | **Trained Trading-R1** (Qwen-class, SFT → GRPO) | 🟢 SFT **v1** is the keeper — fixed the all-HOLD collapse, **most defensive** (MDD 7.9 %, NO_TAG 0 %). **v2** (teacher-distilled) evaluated → **regression** (MDD 20.7 %, NO_TAG 9.2 %). **GRPO** RL on the v1 base now **training** (decision-driven; eval pending) |
 
 Every approach emits the same thing — a **target-weight matrix
 `[date × ticker]`** — which is run through a single
@@ -169,8 +169,13 @@ future-dated leakage invalidates the backtest.
     vs v1**: CR +34 % but MDD 20.7 % (v1 7.9 %), Sharpe 0.46 (v1 0.53), and the
     verbose §8 style fails to terminate on **9.2 %** of inputs (NO_TAG, vs v1 0 %).
     The long distilled rationale hurt both risk and format — see the memo. Keep v1.
-  - 🟢 **GRPO rewards** built + tested (`compare_lab/grpo/rewards.py`:
-    structure/evidence/decision, §5.2) — **GRPO** RL on the **v1** base next.
+  - 🟢 **GRPO** RL on the **v1** base — **training now** (`compare_lab/grpo/`:
+    `rewards.py` structure/evidence/decision §5.2 unit-tested; `build_dataset.py`
+    label-free pre-2024 prompts + volatility label; `train.py` TRL GRPOTrainer,
+    merges v1 LoRA → fresh GRPO LoRA, HF generation on GB10). GB10 smoke passed.
+    Decision-driven: on the terse v1 base the structure/evidence rewards score a
+    flat 0 (no gradient), so the capital-preservation decision matrix drives it.
+    Eval (serve + backtest, like v1/v2) pending.
 - **Data integration** ✅ news/fundamentals/sentiment/macro join the snapshot by
   PIT timestamp (`compare_lab/multimodal_context.py`, opt-in in `snapshot.py`);
   delivered-data defects fixed (`*_pit.parquet`). See
