@@ -8,7 +8,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/python-3.11-blue" alt="Python 3.11">
   <img src="https://img.shields.io/badge/engine-qf--lib%20(submodule)-orange" alt="qf-lib">
-  <img src="https://img.shields.io/badge/tests-52%20passing-brightgreen" alt="tests">
+  <img src="https://img.shields.io/badge/tests-62%20passing-brightgreen" alt="tests">
 </p>
 
 ---
@@ -50,11 +50,12 @@ trading-r1-qflib/
 │   ├── insider_pit.py    #   recover insider txn-type from text     → *_pit.parquet
 │   ├── fundamentals_pit.py# normalize the two revenue XBRL tags     → *_pit.parquet
 │   ├── multimodal_context.py# PIT join of news/fundamentals/sentiment/macro
-│   └── sft/              #   sub-project 2: build_dataset · train (LoRA) · README
+│   ├── sft/              #   sub-project 2a: build_dataset · distill (teacher v2) · train (LoRA)
+│   └── grpo/             #   sub-project 2b: build_dataset · rewards (§5.2) · train (TRL GRPO, GB10)
 ├── validate_data.py      # data QC gates G1–G5 + scored quality (docs/DATA_QC_RUBRIC.md)
 ├── crawl_news.py         # Google-News-RSS news crawler (reproduces news.parquet)
 ├── qf-lib-harness/       # submodule → github.com/ico1036/qf-lib-harness (frozen, read-only)
-├── data/                 # gitignored: prices, qflib_data_store/ (multi-modal), sft_adapter_v0/
+├── data/                 # gitignored: prices, qflib_data_store/ (multi-modal), sft_adapter_v0..v2/
 ├── docs/                 # DATA_STORE · DATA_QC_RUBRIC · DATA_REQUIREMENTS · memo · superpowers/{specs,plans}
 └── tradingR1.pdf         # the paper
 ```
@@ -90,9 +91,19 @@ uv run python -m compare_lab.run_comparison --out compare_lab/output
 
 # add the prompt-only LLM row (requires a vLLM endpoint; see Roadmap)
 uv run python -m compare_lab.run_comparison --llm --out compare_lab/output
+
+# evaluate a *trained* adapter (SFT v1/v2, GRPO): serve it as a vLLM LoRA, then
+# point the backtest at it. The cache key is the snapshot hash (model-agnostic),
+# so each model MUST use its own VLLM_CACHE_DIR or it reuses another's replies.
+VLLM_MODEL=sft-v1 VLLM_CACHE_DIR=compare_lab/.cache_sftv1 \
+  uv run python -m compare_lab.run_comparison --llm --out compare_lab/output_sftv1
 ```
 
-Writes `comparison.csv` + an interactive `equity.html`.
+Writes `comparison.csv` + an interactive `equity.html`. Env knobs for the LLM
+row: `VLLM_MODEL` (served id / LoRA name), `VLLM_CACHE_DIR` (per-model cache —
+required), `VLLM_MAX_TOKENS` (default 2048; raise for long theses), and
+`LLM_CONCURRENCY` (default 16 in-flight requests — vLLM batches them, ~13× over
+serial).
 
 ## Results so far
 
