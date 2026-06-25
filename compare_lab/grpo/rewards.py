@@ -50,10 +50,17 @@ def parse_last_decision(text: str) -> str | None:
     return m[-1].upper() if m else None
 
 
+# An invalid / echoed decision (no single valid class — e.g. the model copying the
+# prompt's template menu `[[[STRONG_BUY|BUY|HOLD|SELL|STRONG_SELL]]]`) is the
+# HARSHEST outcome: worse than the worst valid wrong call (matrix min -2.25), so
+# GRPO is pushed to always emit one parseable class.
+INVALID_DECISION_PENALTY = -2.5
+
+
 def decision_reward(text: str, label: str, lam: float = 1.0) -> float:
     d = parse_last_decision(text)
     if d is None or label not in DECISION_MATRIX:
-        return -1.5 * lam
+        return INVALID_DECISION_PENALTY * lam
     return DECISION_MATRIX[d][label] * lam
 
 

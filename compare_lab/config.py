@@ -19,6 +19,14 @@ OOS_END = datetime(2026, 4, 1)
 PAPER_SLICE_START = datetime(2024, 6, 1)
 PAPER_SLICE_END = datetime(2024, 9, 1)
 
+# --- multimodal gap-closing cycle (spec 2026-06-25): train 2024 / eval 2025-H1,
+# 12 equities (news/fundamentals start 2024; ETFs have thin company data). ---
+UNIVERSE_MM: tuple[str, ...] = tuple(t for t in UNIVERSE if t not in ("SPY", "QQQ"))
+MM_TRAIN_START = datetime(2024, 1, 1)
+MM_TRAIN_END = datetime(2024, 12, 31)
+MM_OOS_START = datetime(2025, 1, 1)
+MM_OOS_END = datetime(2025, 7, 1)
+
 REBAL_FREQ = "W-FRI"      # weekly rebalance anchor
 RF_ANNUAL = 0.04          # risk-free rate, paper §7.1 (US10Y)
 ANNUALIZATION = 252.0

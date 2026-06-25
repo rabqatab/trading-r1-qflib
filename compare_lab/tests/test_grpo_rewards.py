@@ -9,10 +9,20 @@ from __future__ import annotations
 from compare_lab.grpo.rewards import (
     DECISION_MATRIX,
     CLASSES,
+    INVALID_DECISION_PENALTY,
     decision_reward,
     evidence_reward,
     structure_reward,
 )
+
+
+def test_template_echo_is_harshest():
+    echo = "## CONCLUSION\n[[[STRONG_BUY|BUY|HOLD|SELL|STRONG_SELL]]]"
+    # echoing the template menu (no single valid class) -> harshest penalty
+    assert decision_reward(echo, "BUY") == INVALID_DECISION_PENALTY
+    assert INVALID_DECISION_PENALTY < -2.25            # worse than worst valid wrong call
+    # a real but wrong call still scores per the matrix, not the penalty
+    assert decision_reward("[[[STRONG_BUY]]]", "STRONG_SELL") == -2.25
 
 
 # ---- decision reward (asymmetric matrix, §5.2 Stage III) -------------------
@@ -38,8 +48,8 @@ def test_decision_reward_takes_last_and_is_case_insensitive():
 
 
 def test_decision_reward_no_valid_decision():
-    assert decision_reward("no decision here", "BUY") == -1.5
-    assert decision_reward("", "HOLD") == -1.5
+    assert decision_reward("no decision here", "BUY") == INVALID_DECISION_PENALTY
+    assert decision_reward("", "HOLD") == INVALID_DECISION_PENALTY
 
 
 def test_decision_reward_lambda_scales():
