@@ -57,6 +57,10 @@ def main() -> int:
     ap.add_argument("--temperature", type=float, default=1.0,
                     help="generation sampling temp (raise for more GRPO exploration)")
     ap.add_argument("--max-steps", type=int, default=-1)
+    ap.add_argument("--max-completion-length", type=int, default=1024,
+                    help="cap generation length (terse SFT base needs ~256; lower = faster)")
+    ap.add_argument("--save-steps", type=int, default=0,
+                    help="checkpoint every N steps (0 = per-epoch); survives a kill")
     ap.add_argument("--wandb", action="store_true")
     ap.add_argument("--smoke", action="store_true",
                     help="tiny subset + 3 steps to verify GB10 compatibility")
@@ -99,12 +103,13 @@ def main() -> int:
         temperature=args.temperature,
         num_train_epochs=args.epochs,
         max_steps=3 if args.smoke else args.max_steps,
-        max_completion_length=1024,   # prompts (~700 tok) need no cap; TRL 1.6 dropped max_prompt_length
+        max_completion_length=args.max_completion_length,
         bf16=True,
         gradient_checkpointing=True,
         use_vllm=False,                  # GB10: vLLM+Ray broken (SM 12.1)
         logging_steps=1,
-        save_strategy="epoch",
+        save_strategy="steps" if args.save_steps else "epoch",
+        save_steps=args.save_steps or 500,
         report_to=["wandb"] if args.wandb else [],
         run_name="tr1-grpo-v1base",
     )
