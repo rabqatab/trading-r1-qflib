@@ -54,6 +54,8 @@ def main() -> int:
     ap.add_argument("--out", default="compare_lab/grpo/out")
     ap.add_argument("--epochs", type=float, default=1.0)
     ap.add_argument("--num-generations", type=int, default=8)
+    ap.add_argument("--temperature", type=float, default=1.0,
+                    help="generation sampling temp (raise for more GRPO exploration)")
     ap.add_argument("--max-steps", type=int, default=-1)
     ap.add_argument("--wandb", action="store_true")
     ap.add_argument("--smoke", action="store_true",
@@ -94,6 +96,7 @@ def main() -> int:
         per_device_train_batch_size=args.num_generations,
         gradient_accumulation_steps=2 if args.smoke else 4,
         num_generations=args.num_generations,
+        temperature=args.temperature,
         num_train_epochs=args.epochs,
         max_steps=3 if args.smoke else args.max_steps,
         max_completion_length=1024,   # prompts (~700 tok) need no cap; TRL 1.6 dropped max_prompt_length

@@ -25,6 +25,8 @@ def main() -> int:
     ap.add_argument("--data", default="compare_lab/sft/data")
     ap.add_argument("--out", default="compare_lab/sft/out")
     ap.add_argument("--epochs", type=float, default=2.0)
+    ap.add_argument("--max-length", type=int, default=MAX_SEQ,
+                    help="token cap (raise to ~8192 for multimodal snapshots)")
     ap.add_argument("--completion-only", action="store_true",
                     help="mask the prompt; train loss only on the assistant turn "
                          "(fixes the v0 HOLD-collapse from full-sequence loss)")
@@ -70,7 +72,7 @@ def main() -> int:
         logging_steps=5,
         save_strategy="epoch",
         eval_strategy="no" if args.smoke else "epoch",
-        max_length=MAX_SEQ,
+        max_length=args.max_length,
         packing=False,
         assistant_only_loss=args.completion_only,
         report_to=[],

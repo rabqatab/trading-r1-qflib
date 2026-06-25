@@ -56,13 +56,14 @@ _TEACHER_INSTR = (
 )
 
 
-def _balanced_examples(ctx, universe, n):
-    """Pick ~n (ticker, date, label) triples, balanced across the 5 classes."""
+def _balanced_examples(ctx, universe, n, start=TRAIN_START, end=TRAIN_END):
+    """Pick ~n (ticker, date, label) triples, balanced across the 5 classes,
+    drawn from the [start, end] window (defaults to the pre-2024 SFT window)."""
     per_class: dict[str, list] = {}
     for t in universe:
         labels = make_labels(ctx.adj_close[t].dropna(), forward=True)
-        win = labels[(labels.index >= pd.Timestamp(TRAIN_START))
-                     & (labels.index <= pd.Timestamp(TRAIN_END))].dropna()
+        win = labels[(labels.index >= pd.Timestamp(start))
+                     & (labels.index <= pd.Timestamp(end))].dropna()
         for d in win.index[::7]:                      # thin to keep it spread out
             per_class.setdefault(win.loc[d], []).append((t, d, win.loc[d]))
     cap = max(1, n // 5)

@@ -20,10 +20,12 @@ from pathlib import Path
 
 import compare_lab  # noqa: F401
 from alpha_lab.core import load_context
-from compare_lab.config import UNIVERSE
+from compare_lab.config import (MM_TRAIN_END, MM_TRAIN_START, UNIVERSE,
+                                 UNIVERSE_MM)
+from compare_lab.multimodal_context import MultiModalStore
 from compare_lab.providers.llm import _PROMPT_HEADER
 from compare_lab.run_comparison import _available_universe
-from compare_lab.sft.distill import _balanced_examples
+from compare_lab.sft.distill import TRAIN_END, TRAIN_START, _balanced_examples
 from compare_lab.snapshot import MarketSnapshotBuilder
 
 
@@ -31,16 +33,21 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="compare_lab/grpo/data")
     ap.add_argument("--n", type=int, default=300)
+    ap.add_argument("--multimodal", action="store_true",
+                    help="append news/fundamentals/sentiment/macro (12-eq, 2024 window)")
     args = ap.parse_args()
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
 
-    universe = _available_universe(UNIVERSE)
+    universe = _available_universe(UNIVERSE_MM if args.multimodal else UNIVERSE)
     ctx = load_context(universe=universe)
-    builder = MarketSnapshotBuilder(ctx)
+    builder = MarketSnapshotBuilder(
+        ctx, multimodal=MultiModalStore() if args.multimodal else None)
+    start = MM_TRAIN_START if args.multimodal else TRAIN_START
+    end = MM_TRAIN_END if args.multimodal else TRAIN_END
 
     records = []
-    for t, d, label in _balanced_examples(ctx, universe, args.n):
+    for t, d, label in _balanced_examples(ctx, universe, args.n, start=start, end=end):
         snap = builder.build(t, d)
         if snap.endswith("no data."):
             continue

@@ -28,8 +28,10 @@ import pandas as pd
 
 import compare_lab  # noqa: F401
 from alpha_lab.core import load_context
-from compare_lab.config import UNIVERSE
+from compare_lab.config import (MM_TRAIN_END, MM_TRAIN_START, UNIVERSE,
+                                 UNIVERSE_MM)
 from compare_lab.labeling import make_labels
+from compare_lab.multimodal_context import MultiModalStore
 from compare_lab.providers.llm import _PROMPT_HEADER
 from compare_lab.run_comparison import _available_universe
 from compare_lab.snapshot import MarketSnapshotBuilder
@@ -84,20 +86,29 @@ def main() -> int:
     ap.add_argument("--every", type=int, default=SAMPLE_EVERY)
     ap.add_argument("--balance", action="store_true",
                     help="down-sample dominant classes (anti-HOLD-collapse)")
+    ap.add_argument("--multimodal", action="store_true",
+                    help="append news/fundamentals/sentiment/macro (12-eq, 2024 window)")
+    ap.add_argument("--limit", type=int, default=0, help="cap records (smoke)")
+    ap.add_argument("--train-start", default=None)
+    ap.add_argument("--train-end", default=None)
     args = ap.parse_args()
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
 
-    universe = _available_universe(UNIVERSE)
+    universe = _available_universe(UNIVERSE_MM if args.multimodal else UNIVERSE)
     ctx = load_context(universe=universe)
-    builder = MarketSnapshotBuilder(ctx)
+    builder = MarketSnapshotBuilder(
+        ctx, multimodal=MultiModalStore() if args.multimodal else None)
+    start = pd.Timestamp(args.train_start
+                         or (MM_TRAIN_START if args.multimodal else TRAIN_START))
+    end = pd.Timestamp(args.train_end
+                       or (MM_TRAIN_END if args.multimodal else TRAIN_END))
 
     records = []
     dist: dict[str, int] = {}
     for t in universe:
         labels = make_labels(ctx.adj_close[t].dropna(), forward=True)
-        window = labels[(labels.index >= pd.Timestamp(TRAIN_START))
-                        & (labels.index <= pd.Timestamp(TRAIN_END))].dropna()
+        window = labels[(labels.index >= start) & (labels.index <= end)].dropna()
         for d in window.index[:: args.every]:
             label = window.loc[d]
             snap = builder.build(t, d)
@@ -111,6 +122,8 @@ def main() -> int:
                 {"role": "assistant", "content": assistant},
             ]})
             dist[label] = dist.get(label, 0) + 1
+        if args.limit and len(records) >= args.limit:
+            break
 
     if args.balance:
         # cap each class at the 2nd-smallest class count (down-sample the

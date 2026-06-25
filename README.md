@@ -8,7 +8,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/python-3.11-blue" alt="Python 3.11">
   <img src="https://img.shields.io/badge/engine-qf--lib%20(submodule)-orange" alt="qf-lib">
-  <img src="https://img.shields.io/badge/tests-62%20passing-brightgreen" alt="tests">
+  <img src="https://img.shields.io/badge/tests-68%20passing-brightgreen" alt="tests">
 </p>
 
 ---
