@@ -22,7 +22,7 @@ evaluation harness so the numbers are actually comparable:
 |---|---|---|
 | **#3** | **Quant factor** (12-1 momentum) | ✅ running |
 | **#2** | **Prompt-only open-source LLM** (Qwen3-4B) → 5-class signal | ✅ **landed** (provenance-verified) |
-| **#1** | **Trained Trading-R1** (Qwen-class, SFT → GRPO) | 🟢 **v1** keeper (most defensive: MDD 7.9 %, NO_TAG 0 %) · **v2** distilled → regression (MDD 20.7 %) · **GRPO** evaluated → **best Sharpe 0.58 / CR +37 %** but lost v1's defense (MDD 21.6 %) + 10 % template-echo. Mixed; v1 still the keeper |
+| **#1** | **Trained Trading-R1** (Qwen-class, SFT → GRPO) | 🟢 **v1** keeper (most defensive: MDD 7.9 %, NO_TAG 0 %) · **v2** distilled → regression · **GRPO** → best Sharpe 0.58 / CR +37 % but lost v1's defense + 10 % echo. **Gap-closing cycle 1 (multimodal)** in progress: SFT-mm v3 trained (token-acc 97.9 %), GRPO-mm training, eval pending |
 
 Every approach emits the same thing — a **target-weight matrix
 `[date × ticker]`** — which is run through a single
@@ -190,7 +190,14 @@ future-dated leakage invalidates the backtest.
 - **Data integration** ✅ news/fundamentals/sentiment/macro join the snapshot by
   PIT timestamp (`compare_lab/multimodal_context.py`, opt-in in `snapshot.py`);
   delivered-data defects fixed (`*_pit.parquet`). See
-  [`docs/DATA_STORE.md`](docs/DATA_STORE.md). Next: feed it to the LLM row + GRPO.
+  [`docs/DATA_STORE.md`](docs/DATA_STORE.md).
+- 🟢 **Gap-closing cycle 1 — multimodal SFT→GRPO** (the dominant gap vs the paper is
+  the modality gap: we trained price-only, the paper on 5 modalities). Leak-safe
+  **train 2024 / eval 2025-H1**, 12-equity, multimodal snapshots fed to SFT + GRPO.
+  SFT-mm **v3** trained (token-acc 97.9 %), GRPO-mm training; eval (OFF/ON ablation +
+  trained rows) pending. Spec + plan: `docs/superpowers/specs/2026-06-25-…`,
+  `docs/superpowers/plans/2026-06-25-…`. Note: our compact snapshot is ~900 tokens
+  (vs the paper's 15–23k), so the modality signal is thinner than the paper's.
 
 ## Testing
 
