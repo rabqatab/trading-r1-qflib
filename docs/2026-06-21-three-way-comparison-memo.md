@@ -200,6 +200,37 @@ hurts both termination and risk. Next: GRPO RL on the **v1** base (keep v1's
 parse/drawdown wins, push return with the decision reward); revisit distillation
 (shorter, decisive teacher theses) only if GRPO stalls.
 
-**Artifacts:** `compare_lab/output{,_14,_sftv1,_sftv2}/comparison.csv`,
+### GRPO RL on the v1 base — best Sharpe, but broke v1's discipline ⚠️
+
+Merged the v1 LoRA into Qwen3-4B and trained a fresh GRPO LoRA (`compare_lab/grpo/`,
+TRL GRPOTrainer on DGX Spark GB10, HF generation; reward_funcs = structure /
+evidence / decision kept separate; 300 balanced pre-2024 prompts, 1 epoch / 69
+steps, LR 5e-6, 8 generations/prompt). Same 14-ticker backtest
+(`compare_lab/output_grpo/`):
+
+| Strategy | Cumulative | Sharpe | Max DD | NO_TAG |
+|---|---|---|---|---|
+| SFT v1 | +29 % | 0.53 | **7.9 %** | 0 % |
+| SFT v2 | +34 % | 0.46 | 20.7 % | 9.2 % |
+| **GRPO** | **+37 %** | **0.58** | 21.6 % | 10.0 % |
+
+GRPO has the **best return and Sharpe of all trained models** — the RL did push
+risk-adjusted return up. But it **lost both of v1's signature wins**: drawdown
+blew out to 21.6 % (v1 7.9 %), and the parse rate regressed to **10 % NO_TAG**
+(v1 0 %). The NO_TAG is *not* truncation (completions average ~1.2k chars): in
+159/164 cases the model **echoes the prompt's template menu verbatim**
+(`[[[STRONG_BUY|BUY|HOLD|SELL|STRONG_SELL]]]`) instead of choosing one class — a
+degenerate mode v1 never had. Training signal was weak/noisy (decision reward
+flat-to-negative over the epoch, entropy ~0.026 → near-deterministic v1 policy
+gives little within-group exploration for GRPO to exploit), consistent with a
+policy that drifted toward more aggressive bets without learning real discipline.
+
+**Verdict:** GRPO is a *mixed* result — pick GRPO for max risk-adjusted return
+(Sharpe 0.58), but **v1 remains the keeper** for the defensive profile (½ the
+drawdown, perfect parse). GRPO is promising-but-unfinished: the 10 % template-echo
+is cheaply fixable (active parse guardrail / format penalty), and more epochs +
+higher entropy (sampling temperature, larger LR) would give the RL real signal.
+
+**Artifacts:** `compare_lab/output{,_14,_sftv1,_sftv2,_grpo}/comparison.csv`,
 `compare_lab/output/oos_daily_returns.csv`, `compare_lab/output/{equity,report}.html`,
 this memo.
