@@ -22,7 +22,7 @@ evaluation harness so the numbers are actually comparable:
 |---|---|---|
 | **#3** | **Quant factor** (12-1 momentum) | ✅ running |
 | **#2** | **Prompt-only open-source LLM** (Qwen3-4B) → 5-class signal | ✅ **landed** (provenance-verified) |
-| **#1** | **Trained Trading-R1** (Qwen-class, SFT → GRPO) | 🟢 **v1** keeper (most defensive: MDD 7.9 %, NO_TAG 0 %) · **v2** distilled → regression · **GRPO** → best Sharpe 0.58 / CR +37 % but lost v1's defense + 10 % echo. **Gap-closing cycle 1 (multimodal)** in progress: SFT-mm v3 trained (token-acc 97.9 %), GRPO-mm training, eval pending |
+| **#1** | **Trained Trading-R1** (Qwen-class, SFT → GRPO) | 🟢 **v1** keeper (MDD 7.9 %, NO_TAG 0 %) · **v2** distilled → regression · **GRPO** → best Sharpe 0.58 but lost defense + echo · **multimodal cycle** (train 2024/eval 2025-H1) → **did not close the gap**: multimodal helped parse (NO_TAG 8.3→1.3 %) not returns; trained models collapsed (SFT all-SELL, GRPO over-long −10 %) in a flat window. v1 still the keeper |
 
 Every approach emits the same thing — a **target-weight matrix
 `[date × ticker]`** — which is run through a single
@@ -191,13 +191,14 @@ future-dated leakage invalidates the backtest.
   PIT timestamp (`compare_lab/multimodal_context.py`, opt-in in `snapshot.py`);
   delivered-data defects fixed (`*_pit.parquet`). See
   [`docs/DATA_STORE.md`](docs/DATA_STORE.md).
-- 🟢 **Gap-closing cycle 1 — multimodal SFT→GRPO** (the dominant gap vs the paper is
-  the modality gap: we trained price-only, the paper on 5 modalities). Leak-safe
-  **train 2024 / eval 2025-H1**, 12-equity, multimodal snapshots fed to SFT + GRPO.
-  SFT-mm **v3** trained (token-acc 97.9 %), GRPO-mm training; eval (OFF/ON ablation +
-  trained rows) pending. Spec + plan: `docs/superpowers/specs/2026-06-25-…`,
-  `docs/superpowers/plans/2026-06-25-…`. Note: our compact snapshot is ~900 tokens
-  (vs the paper's 15–23k), so the modality signal is thinner than the paper's.
+- ❌ **Gap-closing cycle 1 — multimodal SFT→GRPO** (train 2024 / eval 2025-H1,
+  12-equity; spec+plan `docs/superpowers/{specs,plans}/2026-06-25-…`) **evaluated →
+  did not close the gap.** OFF/ON ablation: multimodal helped *parse* (NO_TAG
+  8.3→1.3 %) but not *returns* (both ~−6 %). Trained models collapsed — SFT-mm to
+  near-all-SELL (all-cash, CR≈0), GRPO over-long (−10 %) — in a flat 2025-H1 window
+  (equal-weight only +5.3 %). Caveats: thin ~900-tok snapshot (vs paper 15–23k),
+  short noisy window, tiny train sets. Numbers + analysis in the memo. Next levers:
+  richer context, regime-matched eval, anti-collapse training.
 
 ## Testing
 

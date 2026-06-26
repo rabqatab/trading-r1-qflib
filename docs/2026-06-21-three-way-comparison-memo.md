@@ -231,6 +231,43 @@ drawdown, perfect parse). GRPO is promising-but-unfinished: the 10 % template-ec
 is cheaply fixable (active parse guardrail / format penalty), and more epochs +
 higher entropy (sampling temperature, larger LR) would give the RL real signal.
 
-**Artifacts:** `compare_lab/output{,_14,_sftv1,_sftv2,_grpo}/comparison.csv`,
+### Gap-closing cycle 1 — multimodal SFT→GRPO (2025-H1) — did not close the gap ❌
+
+The dominant gap vs the paper is the modality gap (we trained price-only; the paper
+on 5 modalities). This cycle fed the multimodal store (news/fundamentals/sentiment/
+macro) into the snapshot, leak-safe **train 2024 / eval 2025-H1**, 12 equities.
+Spec/plan: `docs/superpowers/{specs,plans}/2026-06-25-multimodal-sft-grpo*`.
+
+| Row (2025-H1, 12-eq) | CR | Sharpe | HR | MDD | NO_TAG |
+|---|---|---|---|---|---|
+| Equal-weight | +5.3 % | 0.26 | — | 27.8 % | — |
+| 12-1 Momentum | −2.1 % | −0.22 | — | 19.6 % | — |
+| Prompt-only LLM, multimodal **OFF** | −6.3 % | −1.12 | 32 % | 14.2 % | 8.3 % |
+| Prompt-only LLM, multimodal **ON** | −6.5 % | −0.92 | 29 % | 20.2 % | **1.3 %** |
+| SFT-mm v3 | +0.4 % | −2.65 | 4 % | 0.7 % | 0 % |
+| SFT-mm → GRPO | −10.0 % | −1.35 | 29 % | 19.6 % | 0 % |
+
+**Criterion 1 (does multimodal add signal?) — no.** The OFF/ON ablation (same base
+model, same window) shows **identical return** (~−6 %); Sharpe nudges −1.12→−0.92.
+The one clear effect is the parse rate: **NO_TAG 8.3 %→1.3 %** — more context → the
+model commits to a parseable call. So multimodal helped *format*, not *returns*.
+
+**Criterion 2 (does training help?) — no, and the trained models are degenerate.**
+SFT-mm v3 collapsed to near-all-SELL (304/312 SELL → long-only → all-cash → CR≈0,
+MDD 0.7 %, the mirror of v0's all-HOLD). GRPO over-corrected to 74 % StrongBuy and,
+in a *down* window, lost −10 %. The 2024-trained decision policy doesn't generalise
+to the 2025-H1 regime.
+
+**Caveats that bound the conclusion:** (1) 2025-H1 was flat/down (equal-weight only
++5.3 %, momentum −2.1 %) — a hard, short (6-mo, noisy-Sharpe) window where the
+negative is as much regime as method; (2) our multimodal snapshot is compact
+(~900 tokens vs the paper's 15–23k), so the modality signal is thin; (3) tiny train
+sets (290 SFT / 243 GRPO). **Verdict: cycle 1 did not close the gap — multimodal
+improved parse reliability but not returns, and the 2024→2025 regime shift exposed
+decision-distribution collapse.** Next levers: a longer/richer multimodal context,
+a regime-matched eval, and anti-collapse training (the all-SELL needs the same
+completion-only/balancing care v1 needed for all-HOLD).
+
+**Artifacts:** `compare_lab/output{,_14,_sftv1,_sftv2,_grpo,_mm_off,_mm_on,_mm_sft,_mm_grpo}/comparison.csv`,
 `compare_lab/output/oos_daily_returns.csv`, `compare_lab/output/{equity,report}.html`,
 this memo.
