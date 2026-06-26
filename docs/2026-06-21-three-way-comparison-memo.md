@@ -285,6 +285,30 @@ improving call *quality*, so in a down window it lost more. Conclusion: modality
 *quantity* isn't the gap; per the ablation-first de-risk we **did not retrain** on the
 rich context. Remaining levers: regime-matched eval + anti-collapse training.
 
-**Artifacts:** `compare_lab/output{,_14,_sftv1,_sftv2,_grpo,_mm_off,_mm_on,_mm_on_rich,_mm_sft,_mm_grpo}/comparison.csv`,
+**Lever 2 tested — regime is not the excuse; it's method + training data.** Put the
+price-only trained models (sft-v1, price-only GRPO; pre-2024 training, so leak-safe)
+on the **same** flat 2025-H1 / 12-equity window as the multimodal models:
+
+| Model (2025-H1, 12-eq) | CR | Sharpe | MDD |
+|---|---|---|---|
+| price-only **SFT-v1** | **+0.6 %** | −0.30 | **9.3 %** |
+| price-only GRPO | −5.6 % | −0.96 | 17.7 % |
+| multimodal SFT-mm | +0.4 % | −2.65 | 0.7 % (all-SELL) |
+| multimodal GRPO | −10.0 % | −1.35 | 19.6 % |
+
+On the identical window, **price-only SFT-v1 survives** (+0.6 %, MDD 9.3 % — the only
+positive trained model), so 2025-H1 is *not* an impossible regime. The multimodal
+versions are **worse than their price-only counterparts** (SFT-mm collapsed; mm-GRPO
+−10 % vs price-GRPO −5.6 %) → multimodal hurt rather than helped. Confounder to keep
+honest: v1 trained on 2017–2023 (7 yr, 4.2 k examples) vs the multimodal models on
+2024 only (1 yr, ~290), so "multimodal worse" also carries a much smaller/shorter
+training set. **Verdict: the negatives are method + training-data, not the regime —
+v1's cross-regime robustness (defensive, no collapse) is what the multimodal models
+lack.** (v1's own 2024–26 number was +29 %, so it *is* regime-sensitive on return,
+but it never collapses.) Next: anti-collapse training; and a hardware aside — GB10
+forced HF rollouts for GRPO (vLLM+Ray broken), capping RL depth; testing TRL's
+single-node vLLM-server rollout next.
+
+**Artifacts:** `compare_lab/output{,_14,_sftv1,_sftv2,_grpo,_mm_off,_mm_on,_mm_on_rich,_mm_sft,_mm_grpo,_po_v1_h1,_po_grpo_h1}/comparison.csv`,
 `compare_lab/output/oos_daily_returns.csv`, `compare_lab/output/{equity,report}.html`,
 this memo.

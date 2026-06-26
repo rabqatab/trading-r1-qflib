@@ -202,8 +202,13 @@ future-dated leakage invalidates the backtest.
     snapshot (3-bucket news ≤50 + 12 sentiment events, ~900→~2k tok) and re-ran the
     prompt-only ablation: parse improved monotonically (NO_TAG 8.3→1.3→0.6 %) but
     **CR got *worse*** (−6.3→−8.4 %) — more context → more confident/aggressive bets,
-    not better calls. Didn't retrain (de-risk). Remaining levers: regime-matched
-    eval, anti-collapse training.
+    not better calls. Didn't retrain (de-risk).
+  - **Lever 2 tested — regime isn't the excuse; it's method + training data.** On the
+    same flat 2025-H1 window, price-only **SFT-v1 survives** (+0.6 %, MDD 9.3 % — only
+    positive trained model), while the multimodal versions are *worse* than their
+    price-only counterparts. The window is survivable; the multimodal models lack v1's
+    cross-regime robustness (confounded by their 1-yr/290-ex training vs v1's 7-yr/4.2k).
+    Remaining lever: anti-collapse training.
 
 ## Testing
 
