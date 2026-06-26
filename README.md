@@ -197,8 +197,13 @@ future-dated leakage invalidates the backtest.
   8.3→1.3 %) but not *returns* (both ~−6 %). Trained models collapsed — SFT-mm to
   near-all-SELL (all-cash, CR≈0), GRPO over-long (−10 %) — in a flat 2025-H1 window
   (equal-weight only +5.3 %). Caveats: thin ~900-tok snapshot (vs paper 15–23k),
-  short noisy window, tiny train sets. Numbers + analysis in the memo. Next levers:
-  richer context, regime-matched eval, anti-collapse training.
+  short noisy window, tiny train sets. Numbers + analysis in the memo.
+  - **Lever 1 tested — richer context is *not* the bottleneck.** Enriched the
+    snapshot (3-bucket news ≤50 + 12 sentiment events, ~900→~2k tok) and re-ran the
+    prompt-only ablation: parse improved monotonically (NO_TAG 8.3→1.3→0.6 %) but
+    **CR got *worse*** (−6.3→−8.4 %) — more context → more confident/aggressive bets,
+    not better calls. Didn't retrain (de-risk). Remaining levers: regime-matched
+    eval, anti-collapse training.
 
 ## Testing
 

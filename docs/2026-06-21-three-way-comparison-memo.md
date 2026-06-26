@@ -268,6 +268,23 @@ decision-distribution collapse.** Next levers: a longer/richer multimodal contex
 a regime-matched eval, and anti-collapse training (the all-SELL needs the same
 completion-only/balancing care v1 needed for all-HOLD).
 
-**Artifacts:** `compare_lab/output{,_14,_sftv1,_sftv2,_grpo,_mm_off,_mm_on,_mm_sft,_mm_grpo}/comparison.csv`,
+**Lever 1 tested — richer context is *not* the bottleneck.** Enriched
+`render_sections` (3-bucket news ≤50 + 12 sentiment events; snapshot ~900→~2k tok)
+and re-ran the prompt-only ablation on 2025-H1:
+
+| Prompt-only LLM (2025-H1) | CR | Sharpe | MDD | NO_TAG |
+|---|---|---|---|---|
+| price-only (OFF) | −6.3 % | −1.12 | 14.2 % | 8.3 % |
+| multimodal thin (~900 tok) | −6.5 % | −0.92 | 20.2 % | 1.3 % |
+| multimodal **rich (~2k tok)** | **−8.4 %** | −0.89 | 22.4 % | **0.6 %** |
+
+Doubling the context moved **parse monotonically** (NO_TAG 8.3→1.3→0.6 %) and Sharpe
+marginally (−1.12→−0.89), but **CR got worse** (−6.3→−8.4 %) and drawdown rose — more
+news/sentiment made the model bet *more confidently and aggressively* without
+improving call *quality*, so in a down window it lost more. Conclusion: modality
+*quantity* isn't the gap; per the ablation-first de-risk we **did not retrain** on the
+rich context. Remaining levers: regime-matched eval + anti-collapse training.
+
+**Artifacts:** `compare_lab/output{,_14,_sftv1,_sftv2,_grpo,_mm_off,_mm_on,_mm_on_rich,_mm_sft,_mm_grpo}/comparison.csv`,
 `compare_lab/output/oos_daily_returns.csv`, `compare_lab/output/{equity,report}.html`,
 this memo.
