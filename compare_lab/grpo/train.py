@@ -61,6 +61,10 @@ def main() -> int:
                     help="cap generation length (terse SFT base needs ~256; lower = faster)")
     ap.add_argument("--save-steps", type=int, default=0,
                     help="checkpoint every N steps (0 = per-epoch); survives a kill")
+    ap.add_argument("--use-vllm", action="store_true",
+                    help="vLLM colocate rollout (single GPU, TP=1) instead of HF gen")
+    ap.add_argument("--vllm-gpu-util", type=float, default=0.3,
+                    help="vLLM's share of GPU mem in colocate mode (rest for training)")
     ap.add_argument("--wandb", action="store_true")
     ap.add_argument("--smoke", action="store_true",
                     help="tiny subset + 3 steps to verify GB10 compatibility")
@@ -106,7 +110,12 @@ def main() -> int:
         max_completion_length=args.max_completion_length,
         bf16=True,
         gradient_checkpointing=True,
-        use_vllm=False,                  # GB10: vLLM+Ray broken (SM 12.1)
+        # HF rollout by default (safe on GB10). --use-vllm switches to vLLM
+        # colocate rollout (single GPU, TP=1 → no Ray) to test if it's faster.
+        use_vllm=args.use_vllm,
+        vllm_mode="colocate",
+        vllm_tensor_parallel_size=1,
+        vllm_gpu_memory_utilization=args.vllm_gpu_util,
         logging_steps=1,
         save_strategy="steps" if args.save_steps else "epoch",
         save_steps=args.save_steps or 500,
