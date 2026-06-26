@@ -116,6 +116,9 @@ def main() -> int:
         vllm_mode="colocate",
         vllm_tensor_parallel_size=1,
         vllm_gpu_memory_utilization=args.vllm_gpu_util,
+        # Qwen3-4B advertises max_model_len 262144 → KV cache won't fit at a small
+        # colocate util; cap it (our prompts ~2k + completion ≤384 need ~2.5k).
+        vllm_max_model_length=4096,
         logging_steps=1,
         save_strategy="steps" if args.save_steps else "epoch",
         save_steps=args.save_steps or 500,

@@ -305,9 +305,17 @@ honest: v1 trained on 2017–2023 (7 yr, 4.2 k examples) vs the multimodal model
 training set. **Verdict: the negatives are method + training-data, not the regime —
 v1's cross-regime robustness (defensive, no collapse) is what the multimodal models
 lack.** (v1's own 2024–26 number was +29 %, so it *is* regime-sensitive on return,
-but it never collapses.) Next: anti-collapse training; and a hardware aside — GB10
-forced HF rollouts for GRPO (vLLM+Ray broken), capping RL depth; testing TRL's
-single-node vLLM-server rollout next.
+but it never collapses.) Next: anti-collapse training.
+
+**Hardware aside — GB10 did *not* cap RL correctness, and barely caps RL depth.**
+We'd used HF rollouts for GRPO out of caution ("vLLM+Ray broken on GB10"), but that
+issue is multi-node/TP>1 only. Verified that TRL GRPO **vLLM colocate rollout**
+(`--use-vllm`, TP=1, no Ray) runs fine on a single GB10: **~77 s/step vs 232 s/step
+for HF (~3×)** and higher entropy (0.10 vs 0.026 → more exploration). The one blocker
+was KV-cache sizing (Qwen3-4B advertises 262 k context); cap `vllm_max_model_length`.
+So deeper, better-exploring RL is feasible on GB10 — a tool for the anti-collapse
+cycle, not a hardware excuse for the negatives (training correctness was always fine:
+SFT-mm hit 97.9 % token-acc).
 
 **Artifacts:** `compare_lab/output{,_14,_sftv1,_sftv2,_grpo,_mm_off,_mm_on,_mm_on_rich,_mm_sft,_mm_grpo,_po_v1_h1,_po_grpo_h1}/comparison.csv`,
 `compare_lab/output/oos_daily_returns.csv`, `compare_lab/output/{equity,report}.html`,
