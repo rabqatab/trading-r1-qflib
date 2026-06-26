@@ -93,8 +93,10 @@ class MultiModalStore:
 
     # ---- rendering ----------------------------------------------------------
 
-    def render_sections(self, ticker: str, as_of, *, max_news: int = 8,
-                        max_events: int = 5) -> str:
+    # paper Table S1: 3 time buckets, capped per bucket, for a spread-out view.
+    _NEWS_BUCKETS = (("≤3d", 0, 3, 10), ("4-10d", 4, 10, 20), ("11-30d", 11, 30, 20))
+
+    def render_sections(self, ticker: str, as_of, *, max_events: int = 12) -> str:
         as_of = pd.Timestamp(as_of)
         out: list[str] = []
 
@@ -103,9 +105,15 @@ class MultiModalStore:
         if news.empty:
             out.append("  none")
         else:
-            for _, r in news.head(max_news).iterrows():
-                out.append(f"  {r['published_at'].date()} | {r['headline']} "
-                           f"({r['source']})")
+            age = (as_of - news["published_at"]).dt.days
+            for tag, lo, hi, cap in self._NEWS_BUCKETS:
+                b = news[(age >= lo) & (age <= hi)].head(cap)
+                if b.empty:
+                    continue
+                out.append(f"  [{tag}]")
+                for _, r in b.iterrows():
+                    out.append(f"  {r['published_at'].date()} | {r['headline']} "
+                               f"({r['source']})")
 
         fund = self.fundamentals(ticker, as_of)
         out.append("=== FUNDAMENTALS (latest filed) ===")
