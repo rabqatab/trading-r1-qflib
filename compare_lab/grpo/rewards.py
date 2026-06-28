@@ -57,6 +57,23 @@ def parse_last_decision(text: str) -> str | None:
 INVALID_DECISION_PENALTY = -2.5
 
 
+# ---- exploration: within-group decision diversity --------------------------
+
+def diversity_scores(decisions: list[str | None], group_size: int) -> list[float]:
+    """Reward a completion for being a *rare* decision within its group of
+    `group_size` consecutive rollouts (TRL packs completions group-by-group).
+    Score = 1 − (count of this decision in the group)/group_size, so a unique
+    call scores ~1 and an all-identical group scores 0. Nudges the over-confident
+    policy off its single-mode prior (exploration)."""
+    out: list[float] = []
+    for g in range(0, len(decisions), group_size):
+        grp = decisions[g:g + group_size]
+        n = len(grp)
+        for d in grp:
+            out.append(1.0 - grp.count(d) / n)
+    return out
+
+
 def decision_reward(text: str, label: str, lam: float = 1.0) -> float:
     d = parse_last_decision(text)
     if d is None or label not in DECISION_MATRIX:

@@ -24,10 +24,12 @@ from pathlib import Path
 
 # Run standalone on node 2: rewards.py sits beside this file, not in a package.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from rewards import decision_reward, evidence_reward, structure_reward  # noqa: E402
+from rewards import (decision_reward, diversity_scores, evidence_reward,  # noqa: E402
+                     parse_last_decision, structure_reward)
 
 MODEL = "Qwen/Qwen3-4B-Instruct-2507"
 LR = 5e-6
+_NUM_GEN = 8   # group size for diversity_reward; set from args in main()
 
 
 def _texts(completions) -> list[str]:
@@ -47,6 +49,11 @@ def reward_decision(completions, label, **kw):
     return [decision_reward(t, lbl) for t, lbl in zip(_texts(completions), label)]
 
 
+def reward_diversity(completions, **kw):
+    decisions = [parse_last_decision(t) for t in _texts(completions)]
+    return diversity_scores(decisions, _NUM_GEN)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--data", default="compare_lab/grpo/data")
@@ -56,6 +63,10 @@ def main() -> int:
     ap.add_argument("--num-generations", type=int, default=8)
     ap.add_argument("--temperature", type=float, default=1.0,
                     help="generation sampling temp (raise for more GRPO exploration)")
+    ap.add_argument("--beta", type=float, default=0.04,
+                    help="KL penalty to the ref policy; lower (0.0) lets it drift/explore")
+    ap.add_argument("--diversity-weight", type=float, default=0.0,
+                    help="weight on the within-group decision-diversity reward (exploration)")
     ap.add_argument("--max-steps", type=int, default=-1)
     ap.add_argument("--max-completion-length", type=int, default=1024,
                     help="cap generation length (terse SFT base needs ~256; lower = faster)")
@@ -69,6 +80,8 @@ def main() -> int:
     ap.add_argument("--smoke", action="store_true",
                     help="tiny subset + 3 steps to verify GB10 compatibility")
     args = ap.parse_args()
+    global _NUM_GEN
+    _NUM_GEN = args.num_generations
 
     import torch
     from datasets import load_dataset
@@ -108,6 +121,8 @@ def main() -> int:
         num_train_epochs=args.epochs,
         max_steps=3 if args.smoke else args.max_steps,
         max_completion_length=args.max_completion_length,
+        beta=args.beta,
+        reward_weights=[1.0, 1.0, 1.0, args.diversity_weight],
         bf16=True,
         gradient_checkpointing=True,
         # HF rollout by default (safe on GB10). --use-vllm switches to vLLM
@@ -128,7 +143,8 @@ def main() -> int:
 
     trainer = GRPOTrainer(
         model=model, args=cfg, peft_config=peft_cfg,
-        reward_funcs=[reward_structure, reward_evidence, reward_decision],
+        reward_funcs=[reward_structure, reward_evidence, reward_decision,
+                      reward_diversity],
         train_dataset=ds["train"],
         processing_class=tok,
     )

@@ -16,6 +16,16 @@ from compare_lab.grpo.rewards import (
 )
 
 
+def test_diversity_scores():
+    from compare_lab.grpo.rewards import diversity_scores
+    # group of 4: 3 SELL + 1 BUY → the rare BUY scores high, the common SELLs low
+    assert diversity_scores(["SELL", "SELL", "SELL", "BUY"], 4) == [0.25, 0.25, 0.25, 0.75]
+    # an all-identical group has no diversity → 0
+    assert diversity_scores(["HOLD", "HOLD"], 2) == [0.0, 0.0]
+    # all distinct → every completion is rare
+    assert diversity_scores(["A", "B", "C", "D"], 4) == [0.75, 0.75, 0.75, 0.75]
+
+
 def test_template_echo_is_harshest():
     echo = "## CONCLUSION\n[[[STRONG_BUY|BUY|HOLD|SELL|STRONG_SELL]]]"
     # echoing the template menu (no single valid class) -> harshest penalty

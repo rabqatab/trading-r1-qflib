@@ -27,6 +27,10 @@ def main() -> int:
     ap.add_argument("--epochs", type=float, default=2.0)
     ap.add_argument("--max-length", type=int, default=MAX_SEQ,
                     help="token cap (raise to ~8192 for multimodal snapshots)")
+    ap.add_argument("--label-smoothing", type=float, default=0.0,
+                    help="soften targets (0.1) → less-confident, higher-entropy base")
+    ap.add_argument("--lora-dropout", type=float, default=0.05,
+                    help="raise (0.15) to regularize against tiny-data overfit")
     ap.add_argument("--completion-only", action="store_true",
                     help="mask the prompt; train loss only on the assistant turn "
                          "(fixes the v0 HOLD-collapse from full-sequence loss)")
@@ -54,7 +58,7 @@ def main() -> int:
         MODEL, torch_dtype=torch.bfloat16, device_map="cuda")
 
     peft_cfg = LoraConfig(
-        r=16, lora_alpha=32, lora_dropout=0.05, bias="none",
+        r=16, lora_alpha=32, lora_dropout=args.lora_dropout, bias="none",
         task_type="CAUSAL_LM",
         target_modules=["q_proj", "k_proj", "v_proj", "o_proj",
                         "gate_proj", "up_proj", "down_proj"],
@@ -73,6 +77,7 @@ def main() -> int:
         save_strategy="epoch",
         eval_strategy="no" if args.smoke else "epoch",
         max_length=args.max_length,
+        label_smoothing_factor=args.label_smoothing,
         packing=False,
         assistant_only_loss=args.completion_only,
         report_to=[],
