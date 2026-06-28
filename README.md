@@ -215,6 +215,14 @@ future-dated leakage invalidates the backtest.
     bug, not an RL target. Real levers now: **exploration** (entropy in the objective /
     less-confident base) + **prompt design**. (Also verified vLLM GRPO rollout works on
     GB10, ~3× faster — so hardware was never the cap.) Next sub-cycle: lever 3b / prompt fix.
+  - ✅ **Prompt fix** — dropped the copyable `[[[A|B|C|D|E]]]` menu from the prompt; a
+    one-line change cut NO_TAG 8.3 %→2.6 % (menu echoes 100 %→0 %), what 3a's RL guardrail
+    couldn't. Now the shared base for all further training.
+  - 🟢 **Two parallel tracks (anti-overfit SFT + exploration GRPO)** — the collapses are
+    over-fit-to-confidence (v1 entropy 0.028; mm-SFT all-SELL). Shared less-confident SFT
+    recipe (dropout↑, fewer epochs) then RL with a diversity reward + lower KL on the
+    price-only track; regularized SFT→GRPO on the multimodal track. Running on both GB10
+    nodes in parallel; eval pending. Spec: `docs/superpowers/specs/2026-06-29-…`.
 
 ## Testing
 
