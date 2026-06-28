@@ -32,8 +32,12 @@ _PATTERN = re.compile(r"\[\[\[\s*(STRONG_BUY|BUY|HOLD|SELL|STRONG_SELL)\s*\]\]\]
 _PROMPT_HEADER = (
     "You are a disciplined equity analyst. Based only on the price and "
     "technical data below, decide a 5-class trading signal for the next week. "
-    "End your reply with exactly one line: [[[STRONG_BUY|BUY|HOLD|SELL|"
-    "STRONG_SELL]]].\n\n"
+    "Choose exactly one of: STRONG_BUY, BUY, HOLD, SELL, STRONG_SELL. End your "
+    "reply with that single choice on its own line wrapped in triple brackets, "
+    "for example [[[BUY]]].\n\n"
+    # NB: do NOT print the option list as a [[[A|B|C|D|E]]] template — models copy
+    # it verbatim (the 8-10% NO_TAG we saw). The only bracketed example is one valid
+    # class, so a copy is still parseable.
 )
 
 
