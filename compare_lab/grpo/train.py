@@ -76,6 +76,8 @@ def main() -> int:
                     help="vLLM colocate rollout (single GPU, TP=1) instead of HF gen")
     ap.add_argument("--vllm-gpu-util", type=float, default=0.3,
                     help="vLLM's share of GPU mem in colocate mode (rest for training)")
+    ap.add_argument("--vllm-max-len", type=int, default=4096,
+                    help="vLLM max_model_len; raise for long multimodal prompts (~8192)")
     ap.add_argument("--wandb", action="store_true")
     ap.add_argument("--smoke", action="store_true",
                     help="tiny subset + 3 steps to verify GB10 compatibility")
@@ -132,8 +134,9 @@ def main() -> int:
         vllm_tensor_parallel_size=1,
         vllm_gpu_memory_utilization=args.vllm_gpu_util,
         # Qwen3-4B advertises max_model_len 262144 → KV cache won't fit at a small
-        # colocate util; cap it (our prompts ~2k + completion ≤384 need ~2.5k).
-        vllm_max_model_length=4096,
+        # colocate util; cap it. Price-only prompts ~700 tok fit 4096; rich
+        # multimodal prompts reach ~4.2k → pass --vllm-max-len 8192 for those.
+        vllm_max_model_length=args.vllm_max_len,
         logging_steps=1,
         save_strategy="steps" if args.save_steps else "epoch",
         save_steps=args.save_steps or 500,
