@@ -208,7 +208,13 @@ future-dated leakage invalidates the backtest.
     positive trained model), while the multimodal versions are *worse* than their
     price-only counterparts. The window is survivable; the multimodal models lack v1's
     cross-regime robustness (confounded by their 1-yr/290-ex training vs v1's 7-yr/4.2k).
-    Remaining lever: anti-collapse training.
+  - ❌ **Lever 3a — deeper GRPO on v1 (vLLM, 2 epoch, num_gen 12, temp 1.2)** made it
+    *worse*, not better (Sharpe 0.33 vs prior GRPO 0.58 / v1 0.53). RL depth is not the
+    lever: entropy stuck ~0.028 (no exploration on the confident v1 base), and the 10 %
+    NO_TAG is the model **copying the prompt's literal menu** `[[[A|B|C|D|E]]]` — a prompt
+    bug, not an RL target. Real levers now: **exploration** (entropy in the objective /
+    less-confident base) + **prompt design**. (Also verified vLLM GRPO rollout works on
+    GB10, ~3× faster — so hardware was never the cap.) Next sub-cycle: lever 3b / prompt fix.
 
 ## Testing
 

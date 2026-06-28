@@ -317,6 +317,34 @@ So deeper, better-exploring RL is feasible on GB10 — a tool for the anti-colla
 cycle, not a hardware excuse for the negatives (training correctness was always fine:
 SFT-mm hit 97.9 % token-acc).
 
-**Artifacts:** `compare_lab/output{,_14,_sftv1,_sftv2,_grpo,_mm_off,_mm_on,_mm_on_rich,_mm_sft,_mm_grpo,_po_v1_h1,_po_grpo_h1}/comparison.csv`,
+### Lever 3a — deeper GRPO on the v1 base — RL depth is not the lever ❌
+
+With the diagnosis that v1 is the non-collapsing keeper and vLLM rollout works on GB10,
+redid GRPO on the v1 base *deeper*: vLLM colocate rollout, num_generations 12 (from 8),
+2 epochs (from 1), temperature 1.2, the −2.5 echo guardrail. Evaluated on two windows:
+
+| 3a GRPO2 | CR | Sharpe | MDD | NO_TAG | vs |
+|---|---|---|---|---|---|
+| 2024–2026 (14-eq) | +25.7 % | **0.33** | 21.6 % | 10.2 % | prior GRPO 0.58, v1 0.53 |
+| 2025-H1 (12-eq) | −2.6 % | −0.64 | 12.1 % | 8.7 % | v1 +0.6 %, mm-GRPO −10 % |
+
+**Deeper RL made it *worse*, not better** (Sharpe 0.33 vs the shallow GRPO's 0.58 and
+v1's 0.53). Two confirmed root causes:
+1. **No exploration.** Entropy stayed ~0.028 even at temperature 1.2 — the confident v1
+   policy barely samples diversely, so within-group reward variance is low and extra
+   steps just over-optimise the noisy decision reward (drifting to 50 % StrongBuy).
+   vLLM gave 3× speed but not exploration on this base.
+2. **The −2.5 echo guardrail didn't take** (still 10 % NO_TAG) — *and we found why*:
+   160/167 no-tags are the model **copying the prompt's literal menu**
+   `[[[STRONG_BUY|BUY|HOLD|SELL|STRONG_SELL]]]` (the `_PROMPT_HEADER` shows it verbatim).
+   That's a **prompt-design bug, not an RL target** — fixable by rewording the format
+   instruction so there's no menu to copy, far cheaper than any reward shaping.
+
+**Verdict: "train RL harder" is off the table** — depth, speed (vLLM), and a harsher
+reward all failed. The real levers are **exploration** (entropy/diversity in the
+objective, or a less-confident base) and **prompt design** (kill the copyable menu).
+Hardware/data-quantity are not the bottleneck.
+
+**Artifacts:** `compare_lab/output{,_14,_sftv1,_sftv2,_grpo,_mm_off,_mm_on,_mm_on_rich,_mm_sft,_mm_grpo,_po_v1_h1,_po_grpo_h1,_v1grpo2_full,_v1grpo2_h1}/comparison.csv`,
 `compare_lab/output/oos_daily_returns.csv`, `compare_lab/output/{equity,report}.html`,
 this memo.
