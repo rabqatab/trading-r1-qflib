@@ -24,7 +24,8 @@ from pathlib import Path
 
 # Run standalone on node 2: rewards.py sits beside this file, not in a package.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from rewards import (decision_reward, diversity_scores, evidence_reward,  # noqa: E402
+from rewards import (decision_reward, diversity_scores,  # noqa: E402
+                     evidence_reward, graded_decision_reward,
                      parse_last_decision, structure_reward)
 
 MODEL = "Qwen/Qwen3-4B-Instruct-2507"
@@ -49,6 +50,10 @@ def reward_decision(completions, label, **kw):
     return [decision_reward(t, lbl) for t, lbl in zip(_texts(completions), label)]
 
 
+def reward_graded(completions, signal, **kw):
+    return [graded_decision_reward(t, s) for t, s in zip(_texts(completions), signal)]
+
+
 def reward_diversity(completions, **kw):
     decisions = [parse_last_decision(t) for t in _texts(completions)]
     return diversity_scores(decisions, _NUM_GEN)
@@ -67,6 +72,9 @@ def main() -> int:
                     help="KL penalty to the ref policy; lower (0.0) lets it drift/explore")
     ap.add_argument("--diversity-weight", type=float, default=0.0,
                     help="weight on the within-group decision-diversity reward (exploration)")
+    ap.add_argument("--graded", action="store_true",
+                    help="use the continuous bet×signal reward (needs a `signal` column) "
+                         "instead of the discrete decision matrix")
     ap.add_argument("--max-steps", type=int, default=-1)
     ap.add_argument("--max-completion-length", type=int, default=1024,
                     help="cap generation length (terse SFT base needs ~256; lower = faster)")
@@ -146,7 +154,8 @@ def main() -> int:
 
     trainer = GRPOTrainer(
         model=model, args=cfg, peft_config=peft_cfg,
-        reward_funcs=[reward_structure, reward_evidence, reward_decision,
+        reward_funcs=[reward_structure, reward_evidence,
+                      reward_graded if args.graded else reward_decision,
                       reward_diversity],
         train_dataset=ds["train"],
         processing_class=tok,

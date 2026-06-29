@@ -22,6 +22,7 @@ import compare_lab  # noqa: F401
 from alpha_lab.core import load_context
 from compare_lab.config import (MM_TRAIN_END, MM_TRAIN_START, UNIVERSE,
                                  UNIVERSE_MM)
+from compare_lab.labeling import make_signal
 from compare_lab.multimodal_context import MultiModalStore
 from compare_lab.providers.llm import _PROMPT_HEADER
 from compare_lab.run_comparison import _available_universe
@@ -46,14 +47,22 @@ def main() -> int:
     start = MM_TRAIN_START if args.multimodal else TRAIN_START
     end = MM_TRAIN_END if args.multimodal else TRAIN_END
 
+    # continuous vol-adjusted signal per ticker (the value the label is cut from),
+    # carried per-example for the graded GRPO reward.
+    signals = {t: make_signal(ctx.adj_close[t].dropna(), forward=True) for t in universe}
+
     records = []
     for t, d, label in _balanced_examples(ctx, universe, args.n, start=start, end=end):
         snap = builder.build(t, d)
         if snap.endswith("no data."):
             continue
+        sig = float(signals[t].get(d, float("nan")))
+        if sig != sig:                       # NaN guard (shouldn't happen where label valid)
+            continue
         records.append({
             "prompt": [{"role": "user", "content": _PROMPT_HEADER + snap}],
             "label": label,
+            "signal": sig,
         })
 
     train, val = [], []

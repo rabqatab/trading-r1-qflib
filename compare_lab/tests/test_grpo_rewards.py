@@ -16,6 +16,15 @@ from compare_lab.grpo.rewards import (
 )
 
 
+def test_graded_decision_reward():
+    from compare_lab.grpo.rewards import graded_decision_reward
+    assert graded_decision_reward("[[[STRONG_BUY]]]", 2.0) == 4.0      # +2 bet × +2 signal
+    assert graded_decision_reward("[[[BUY]]]", -1.0) == -1.5           # wrong → ×1.5 downside
+    assert graded_decision_reward("[[[HOLD]]]", 3.0) == 0.0            # HOLD always 0
+    assert graded_decision_reward("[[[STRONG_SELL]]]", -5.0) == 6.0    # signal clipped to -3
+    assert graded_decision_reward("no tag", 2.0) == INVALID_DECISION_PENALTY
+
+
 def test_diversity_scores():
     from compare_lab.grpo.rewards import diversity_scores
     # group of 4: 3 SELL + 1 BUY → the rare BUY scores high, the common SELLs low

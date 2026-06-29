@@ -81,6 +81,25 @@ def decision_reward(text: str, label: str, lam: float = 1.0) -> float:
     return DECISION_MATRIX[d][label] * lam
 
 
+# Directional bet size per class, for the continuous graded reward.
+_BET = {"STRONG_SELL": -2.0, "SELL": -1.0, "HOLD": 0.0, "BUY": 1.0, "STRONG_BUY": 2.0}
+
+
+def graded_decision_reward(text: str, signal: float, *, clip: float = 3.0,
+                           downside_mult: float = 1.5) -> float:
+    """Dense, magnitude-aware decision reward: bet × realized vol-adjusted `signal`
+    (the `make_signal` value the 5-class label was cut from). Confident-correct calls
+    in strong moves score big; wrong calls score negative and are amplified ×1.5
+    (capital-preservation, paper principle ①). HOLD → 0. No valid tag → the invalid
+    penalty (echo guardrail). `signal` is clipped to ±`clip` to tame outliers."""
+    d = parse_last_decision(text)
+    if d is None or d not in _BET:
+        return INVALID_DECISION_PENALTY
+    s = max(-clip, min(clip, float(signal)))
+    raw = _BET[d] * s
+    return raw * downside_mult if raw < 0 else raw
+
+
 # ---- section parsing (shared) ---------------------------------------------
 
 def _sections(text: str) -> list[tuple[str, str]]:
