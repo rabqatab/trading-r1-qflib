@@ -395,6 +395,29 @@ sizing/reward one** — you cannot size your way to low drawdown with IC-0.2 cal
 IC input-bound at ~0.2, the **only genuine lever left is more predictive inputs/data**;
 reward density, sizing, RL, and teacher quality all operate *under* that ceiling.
 
+### Pushing the ceiling (2026-06-29) — multimodal is the regime-robust alpha we missed
+
+Don't-accept-the-ceiling push. Built a strong tabular baseline (HistGBM on technical
+features) to find the *achievable* IC, then probed orthogonal signal:
+- **GBM out-of-sample IC = 0.237** (2024-26) vs the LLMs' 0.13–0.24 — so there *is* a small
+  headroom (the LLM under-extracts numeric features; RSI alone already ICs 0.20), but the
+  **price/technical ceiling is ~0.24.** LLM⊕GBM ensemble = 0.23 (they're 0.62-correlated →
+  the LLM adds ~nothing orthogonal on price).
+- **Regime split (train 2024 / test flat 2025-H1):** GBM **price-only IC flips to −0.05**
+  (the technical signal *inverts* out of a bull regime — the root of the drawdown/regime
+  weakness), while **GBM multimodal-only IC = +0.199** and, crucially, **trades positive:
+  CR +4.2 %, SR +0.43, MDD 16.7 % — the ONLY model that makes money in 2025-H1** (every LLM:
+  graded −1.01, v1 −0.30, mm-reg −0.17).
+
+**This reverses the "multimodal is useless" verdict.** Multimodal carries **orthogonal,
+regime-robust** signal; our LLM runs missed it because the LLM (a) under-extracts numeric
+features and (b) was fed raw headlines, not structured multimodal numbers a model can use.
+**The path to break 0.24 *and* close the drawdown/regime gap (the paper's real edge) is to
+extract the multimodal signal properly** — structured multimodal features into the model
+(GBM, or fed to the LLM as numbers), ideally regime-aware (price in trends, multimodal in
+chop). Caveat: 2025-H1 n is small and MDD still 16.7 % — needs broader-regime validation
+and likely a fresh/longer multimodal pull. But it is the first positive, hopeful lever.
+
 **The 0.93 is NOT from better prediction.** graded's IC (0.19) sits on the same ~0.2
 ceiling as everything; in 2025-H1 it has a *higher* IC (0.25) yet *loses money* — proving
 the Sharpe is a **bull-window long-bias + the reward's conviction-concentration**, not
