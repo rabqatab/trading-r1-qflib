@@ -22,7 +22,7 @@ evaluation harness so the numbers are actually comparable:
 |---|---|---|
 | **#3** | **Quant factor** (12-1 momentum) | ✅ running |
 | **#2** | **Prompt-only open-source LLM** (Qwen3-4B) → 5-class signal | ✅ **landed** (provenance-verified) |
-| **#1** | **Trained Trading-R1** (Qwen-class, SFT → GRPO) | 🟢 **v1** keeper (MDD 7.9 %, NO_TAG 0 %) · **v2** distilled → regression · **GRPO** → best Sharpe 0.58 but lost defense + echo · **multimodal cycle** (train 2024/eval 2025-H1) → **did not close the gap**: multimodal helped parse (NO_TAG 8.3→1.3 %) not returns; trained models collapsed (SFT all-SELL, GRPO over-long −10 %) in a flat window. v1 still the keeper |
+| **#1** | **Trained Trading-R1** (Qwen-class, SFT → GRPO) | 🟢 **v1** keeper (MDD 7.9 %, NO_TAG 0 %) · **v2** distilled → regression · **GRPO** → Sharpe 0.58 but lost defense + echo · **multimodal** → parse not returns; collapses. **Fixed (latest):** prompt fix killed the echo (NO_TAG→2.6 %); anti-overfit + diversity-reward GRPO **dissolved the collapses** (Track B all-SELL→balanced) and recovered Sharpe 0.33→0.54 — methods work, but v1's defensive MDD 7.9 % still unbeaten |
 
 Every approach emits the same thing — a **target-weight matrix
 `[date × ticker]`** — which is run through a single
@@ -221,8 +221,12 @@ future-dated leakage invalidates the backtest.
   - 🟢 **Two parallel tracks (anti-overfit SFT + exploration GRPO)** — the collapses are
     over-fit-to-confidence (v1 entropy 0.028; mm-SFT all-SELL). Shared less-confident SFT
     recipe (dropout↑, fewer epochs) then RL with a diversity reward + lower KL on the
-    price-only track; regularized SFT→GRPO on the multimodal track. Running on both GB10
-    nodes in parallel; eval pending. Spec: `docs/superpowers/specs/2026-06-29-…`.
+    price-only track; regularized SFT→GRPO on the multimodal track. Spec:
+    `docs/superpowers/specs/2026-06-29-…`. ✅ **Both diagnosed causes fixed:** Track A
+    (v1-reg) restored within-group decision diversity (StrongBuy collapse gone) and
+    recovered Sharpe **0.33→0.54** (24–26); Track B (mm-reg) **dissolved the all-SELL
+    collapse** (97 %→BUY 49/HOLD 28/SELL 12) — best multimodal result, edges v1 on the
+    2025-H1 Sharpe. The methods work; v1's defensive MDD 7.9 % is still the ceiling to beat.
 
 ## Testing
 

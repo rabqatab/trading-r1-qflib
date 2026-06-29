@@ -345,6 +345,31 @@ reward all failed. The real levers are **exploration** (entropy/diversity in the
 objective, or a less-confident base) and **prompt design** (kill the copyable menu).
 Hardware/data-quantity are not the bottleneck.
 
+### Prompt fix + two anti-overfit/exploration tracks — the diagnoses hold ✅
+
+First the cheap win: rewording `_PROMPT_HEADER` to drop the copyable `[[[A|B|C|D|E]]]`
+menu cut base-model NO_TAG 8.3 %→2.6 % (menu echoes 100 %→0 %) — a one-line fix that
+beat 3a's −2.5 RL guardrail. Then two parallel tracks on the regenerated (fixed-prompt)
+data, each a *less-confident* SFT (LoRA dropout 0.15 + 1 epoch; TRL 1.6 blocks
+label-smoothing under completion-only) then GRPO:
+
+| Model | window | CR | Sharpe | MDD | NO_TAG | decision mix |
+|---|---|---|---|---|---|---|
+| **A: v1-reg GRPO** (diversity 0.3 + β=0 + vLLM) | 24–26 | +34 % | **0.54** | 18.4 % | 4.5 % | BUY 47/HOLD 23/SELL 21 |
+| A: v1-reg GRPO | 25-H1 | −5.3 % | −1.07 | 13.3 % | 2 % | BUY 36/HOLD 31/SELL 26 |
+| **B: mm-reg GRPO** (regularized) | 25-H1 | +1.0 % | **−0.17** | 13.7 % | 6 % | BUY 49/HOLD 28/SELL 12 |
+
+**Both diagnosed root causes were fixed.** (1) *Exploration* — Track A's within-group
+`diversity_reward` ran ~0.69 (groups now emit *different* decisions), the StrongBuy
+collapse of 3a is gone (balanced BUY/HOLD/SELL), and Sharpe **recovered 0.33→0.54**
+(back to v1/prior-GRPO level). (2) *Collapse* — Track B's regularization **dissolved the
+all-SELL degeneration** (97 % SELL → BUY 49/HOLD 28/SELL 12); it is the best multimodal
+result and edges v1 on the 2025-H1 Sharpe (−0.17 vs −0.30). NO_TAG stays low everywhere
+(prompt fix). **Honest ceiling:** these *repair* the broken runs rather than break new
+ground — Track A only returns to v1's ~0.53 Sharpe, and v1's defensive MDD (7.9 %) is
+still unmatched. The methods now work; beating v1 outright would need a stronger signal
+(richer verifiable reward, or more/real data), not more of the same knobs.
+
 **Artifacts:** `compare_lab/output{,_14,_sftv1,_sftv2,_grpo,_mm_off,_mm_on,_mm_on_rich,_mm_sft,_mm_grpo,_po_v1_h1,_po_grpo_h1,_v1grpo2_full,_v1grpo2_h1}/comparison.csv`,
 `compare_lab/output/oos_daily_returns.csv`, `compare_lab/output/{equity,report}.html`,
 this memo.
