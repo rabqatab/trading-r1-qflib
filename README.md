@@ -22,7 +22,7 @@ evaluation harness so the numbers are actually comparable:
 |---|---|---|
 | **#3** | **Quant factor** (12-1 momentum) | ✅ running |
 | **#2** | **Prompt-only open-source LLM** (Qwen3-4B) → 5-class signal | ✅ **landed** (provenance-verified) |
-| **#1** | **Trained Trading-R1** (Qwen-class, SFT → GRPO) | 🟢 **Breakthrough — graded-reward GRPO** (continuous bet×signal): **Sharpe 0.93, CR +52.7 %, MDD 11.2 %** (2024–26), nearly 2× v1's Sharpe and best of any trained model. Path there: v1 (defensive keeper, MDD 7.9 %) → v2 distill/multimodal regressions → prompt fix (echo) + anti-overfit/diversity (un-collapsed) → **dense continuous reward broke v1's ceiling**. v1 still lowest absolute drawdown; bear-slice test next |
+| **#1** | **Trained Trading-R1** (Qwen-class, SFT → GRPO) | 🟢 **graded-reward GRPO** (continuous bet×signal) is best on bull-window return (Sharpe 0.93, CR +52.7 %, 2024–26) and matches the paper's Sharpe (1.51 vs 1.57). **But the honest-lens audit** ([report](docs/2026-06-29-results-report.html)): every working model's label-fidelity **IC ≈ 0.13–0.24** (a signal ceiling, not broken); the 0.93 is **bull-window long-bias + reward concentration, not prediction skill** (in flat 2025-H1 graded has *higher* IC yet **loses −4.3 %**). Real remaining gap = **drawdown** (ours ~5–8 % vs paper 2.8 %) + regime robustness. v1 still lowest MDD |
 
 Every approach emits the same thing — a **target-weight matrix
 `[date × ticker]`** — which is run through a single
@@ -229,12 +229,15 @@ future-dated leakage invalidates the backtest.
     2025-H1 Sharpe. The methods work; v1's defensive MDD 7.9 % is still the ceiling to beat.
   - 🟢 **Stronger verifiable reward (graded continuous)** — replace the coarse 5×5
     decision matrix with `bet × clip(make_signal, ±3)` (dense, magnitude-aware; losing
-    trades ×1.5). GRPO from the v1-reg base. ✅ **Broke v1's ceiling:** Sharpe **0.93**
-    (vs v1 0.53 / prior GRPO 0.58), CR **+52.7 %**, MDD 11.2 % (2024–26), diverse mix,
-    NO_TAG 3.7 %. **Reward *density* was the lever, not data** — the dense bet×signal gave
-    the first learnable GRPO gradient (reward −1.58→+0.33). v1 still lowest absolute MDD
-    (most defensive); graded = best risk-adjusted. 2025-H1 still −4.3 % → bear-slice test
-    next. Spec: `docs/superpowers/specs/2026-06-29-graded-…`.
+    trades ×1.5). GRPO from the v1-reg base — gave the first learnable GRPO gradient
+    (reward −1.58→+0.33) and the **best bull-window return** (Sharpe 0.93, CR +52.7 %,
+    2024–26). ⚠️ **But not a prediction breakthrough** (honest-lens audit, the reviewer's
+    `eval_labels`/`compare_paper`): graded's label-fidelity IC is **0.19 — the same ~0.2
+    ceiling as every model**; in flat 2025-H1 it has *higher* IC (0.25) yet **loses −4.3 %**,
+    so the 0.93 is bull long-bias + reward concentration, not skill. vs paper: Sharpe
+    comparable (1.51 vs 1.57), **drawdown 2× worse** (5.5 % vs 2.8 %). Real levers now:
+    **drawdown control + regime robustness**, and more predictive *inputs* (IC is
+    input-bound). Report: `docs/2026-06-29-results-report.html`.
 
 ## Testing
 

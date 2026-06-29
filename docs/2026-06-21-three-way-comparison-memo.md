@@ -370,31 +370,31 @@ ground — Track A only returns to v1's ~0.53 Sharpe, and v1's defensive MDD (7.
 still unmatched. The methods now work; beating v1 outright would need a stronger signal
 (richer verifiable reward, or more/real data), not more of the same knobs.
 
-### Graded continuous reward — the ceiling breaks ✅✅
+### Graded continuous reward — best bull-window return, but NOT a prediction breakthrough ⚠️
 
 Replaced the coarse 5×5 decision matrix with a **dense, magnitude-aware** reward:
-`graded_decision_reward = bet(±2/±1/0) × clip(make_signal, ±3)`, losing trades ×1.5
-(continuous capital-preservation). GRPO from the v1-reg base (diversity 0.3, β=0, vLLM).
-The training reward was the first **learnable** GRPO curve (−1.58 → +0.33; the matrix
-reward had stayed flat/noisy). Backtest:
+`graded_decision_reward = bet(±2/±1/0) × clip(make_signal, ±3)`, losing trades ×1.5. GRPO
+from the v1-reg base. The training reward was the first **learnable** GRPO curve
+(−1.58 → +0.33). 2024-26 backtest: **CR +52.7 %, Sharpe 0.93, MDD 11.2 %** — best of any
+trained model. *Initially read as a ceiling-break.* **The honest-lens audit
+(`eval_labels`/`compare_paper`, the reviewer's tooling) corrects that:**
 
-| Model (2024–26, 14-eq) | CR | Sharpe | MDD | NO_TAG |
-|---|---|---|---|---|
-| Equal-weight | +143 % | 1.04 | 32.3 % | — |
-| 12-1 Momentum | +52 % | 0.70 | 19.6 % | — |
-| SFT v1 (prior champion) | +29 % | 0.53 | **7.9 %** | 0 % |
-| GRPO (matrix) | +37 % | 0.58 | 21.6 % | 10 % |
-| **graded GRPO** | **+52.7 %** | **0.93** | 11.2 % | 3.7 % |
+| graded | rank-IC (label-fidelity) | backtest SR | verdict |
+|---|---|---|---|
+| 2024-26 (bull) | **+0.19** (same ~0.2 ceiling as every model) | 0.93 | learned + profitable |
+| 2025-H1 (flat) | **+0.25** (*higher* IC) | **−1.01 (CR −4.3 %)** | "learned it, but PROXY/regime is the problem → fix label" |
+| vs paper (2024-06–08, per-ticker) | — | 1.51 vs paper 1.57 | MDD 5.5 % vs paper **2.8 %** |
 
-**First genuine breakthrough, not a repair.** Sharpe **0.53 → 0.93** (≈2×, past momentum's
-0.70, near equal-weight's 1.04), CR **+29 → +52.7 %** (best of any trained model), at half
-the prior GRPO's drawdown (21.6 → 11.2 %), with a diverse decision mix (BUY 43/SELL 23/
-HOLD 22, no collapse) and low NO_TAG (prompt fix holds). **Conclusion: reward *density*
-was the lever, not data** — the discrete matrix gave near-zero within-group advantage; the
-continuous bet×signal gives a dense gradient. *Honest nuance:* v1's absolute MDD (7.9 %)
-is still lowest, so v1 = most defensive, **graded = best risk-adjusted** (Sharpe + return).
-2025-H1 (flat) is still −4.3 % — the gains are a bull-window phenomenon; a bear-slice test
-is the next robustness check.
+**The 0.93 is NOT from better prediction.** graded's IC (0.19) sits on the same ~0.2
+ceiling as everything; in 2025-H1 it has a *higher* IC (0.25) yet *loses money* — proving
+the Sharpe is a **bull-window long-bias + the reward's conviction-concentration**, not
+predictive skill. Versus the paper it matches on Sharpe (1.51 vs 1.57) but the **real gap
+is drawdown** (5.5 % vs 2.8 %). So: reward density made GRPO *learnable* and gave the best
+bull-window risk-adjusted return, but **did not break the prediction ceiling**, and the
+gains don't survive a flat regime. Genuine levers now: **drawdown control + regime
+robustness** (the paper's actual edge), and — since IC is input-bound at ~0.2 — **more
+predictive inputs**, not more reward/RL/teacher tweaks. (Auto-report:
+`docs/2026-06-29-results-report.html`.)
 
 **Artifacts:** `compare_lab/output{,_14,_sftv1,_sftv2,_grpo,_mm_off,_mm_on,_mm_on_rich,_mm_sft,_mm_grpo,_po_v1_h1,_po_grpo_h1,_v1grpo2_full,_v1grpo2_h1,_graded_full,_graded_h1}/comparison.csv`, `compare_lab/output{,_14,_sftv1,_sftv2,_grpo,_mm_off,_mm_on,_mm_on_rich,_mm_sft,_mm_grpo,_po_v1_h1,_po_grpo_h1,_v1grpo2_full,_v1grpo2_h1}/comparison.csv`,
 `compare_lab/output/oos_daily_returns.csv`, `compare_lab/output/{equity,report}.html`,
