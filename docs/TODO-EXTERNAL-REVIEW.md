@@ -1,3 +1,6 @@
+<!-- HISTORICAL SNAPSHOT (2026-06-21/22), all items resolved. Superseded by the current
+README and docs/PROGRESS-2026-06-21.md. Kept as a dated record. -->
+
 # TODO — External Review Triage
 
 > Source: external review from the QF-Lib-LLM Telegram discussion.  

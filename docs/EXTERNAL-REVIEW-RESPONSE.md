@@ -1,3 +1,6 @@
+<!-- HISTORICAL SNAPSHOT (2026-06-22). Superseded by the current README "Models at a
+glance" / "What we learned" and docs/PROGRESS-2026-06-21.md. Kept as a dated record. -->
+
 # Response to External Review — Trading-R1 × qf-lib
 
 **Date:** 2026-06-22 · **Branch:** `checkpoint/2026-06-21-llm-sft-data` (pushed to

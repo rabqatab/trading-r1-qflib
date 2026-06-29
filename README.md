@@ -8,7 +8,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/python-3.11-blue" alt="Python 3.11">
   <img src="https://img.shields.io/badge/engine-qf--lib%20(submodule)-orange" alt="qf-lib">
-  <img src="https://img.shields.io/badge/tests-68%20passing-brightgreen" alt="tests">
+  <img src="https://img.shields.io/badge/tests-70%20passing-brightgreen" alt="tests">
 </p>
 
 ---
@@ -18,20 +18,23 @@
 Three ways to turn information into US-equity trades, compared on **one**
 evaluation harness so the numbers are actually comparable:
 
-| # | Approach | Status |
+| # | Approach | One-line status |
 |---|---|---|
-| **#3** | **Quant factor** (12-1 momentum) | ✅ running |
-| **#2** | **Prompt-only open-source LLM** (Qwen3-4B) → 5-class signal | ✅ **landed** (provenance-verified) |
-| **#1** | **Trained Trading-R1** (Qwen-class, SFT → GRPO) | 🟢 **graded-reward GRPO** (continuous bet×signal) is best on bull-window return (Sharpe 0.93, CR +52.7 %, 2024–26) and matches the paper's Sharpe (1.51 vs 1.57). **But the honest-lens audit** ([report](docs/2026-06-29-results-report.html)): every working model's label-fidelity **IC ≈ 0.13–0.24** (a signal ceiling, not broken); the 0.93 is **bull-window long-bias + reward concentration, not prediction skill** (in flat 2025-H1 graded has *higher* IC yet **loses −4.3 %**). Real remaining gap = **drawdown** (ours ~5–8 % vs paper 2.8 %) + regime robustness. v1 still lowest MDD |
+| **#3** | **Quant factor** (12-1 momentum) | ✅ baseline |
+| **#2** | **Prompt-only LLM** (Qwen3-4B, zero-shot) → 5-class signal | ✅ landed, provenance-verified — differentiated but universe-sensitive |
+| **#1** | **Trained Trading-R1** (Qwen3-4B, SFT → GRPO) | 🟢 best LLM = graded-reward GRPO (bull-window Sharpe 0.93) — but it's a **bull-window long-bias, not prediction skill** (IC stuck ~0.2). See [Models at a glance](#models-at-a-glance). |
 
 Every approach emits the same thing — a **target-weight matrix
-`[date × ticker]`** — which is run through a single
-[qf-lib](https://github.com/quarkfin/qf-lib) event backtest and scored on
+`[date × ticker]`** — run through one
+[qf-lib](https://github.com/quarkfin/qf-lib) event backtest, scored on
 **CR / Sharpe / Hit-Rate / Max-Drawdown**. Look-ahead is blocked at three
 layers (snapshot `as_of`, signal lag, next-bar execution).
 
 Based on **Trading-R1** (Xiao et al., [arXiv:2509.11420](https://arxiv.org/abs/2509.11420));
 code/data/weights are unreleased, so this is a *reimplementation*, not a rerun.
+Full results + caveats: [memo](docs/2026-06-21-three-way-comparison-memo.md) ·
+[honest-lens report](docs/2026-06-29-results-report.html) ·
+[chronological log](docs/PROGRESS-2026-06-21.md).
 
 ## Layout
 
@@ -89,43 +92,100 @@ or the full ~7k-ticker pipeline (`research/1_…` → `5_…`, 30 min–2 h).
 # baselines only (no LLM, no GPU needed)
 uv run python -m compare_lab.run_comparison --out compare_lab/output
 
-# add the prompt-only LLM row (requires a vLLM endpoint; see Roadmap)
+# add the prompt-only LLM row (requires a vLLM endpoint)
 uv run python -m compare_lab.run_comparison --llm --out compare_lab/output
-
-# evaluate a *trained* adapter (SFT v1/v2, GRPO): serve it as a vLLM LoRA, then
-# point the backtest at it. The cache key is the snapshot hash (model-agnostic),
-# so each model MUST use its own VLLM_CACHE_DIR or it reuses another's replies.
-VLLM_MODEL=sft-v1 VLLM_CACHE_DIR=compare_lab/.cache_sftv1 \
-  uv run python -m compare_lab.run_comparison --llm --out compare_lab/output_sftv1
 ```
 
-Writes `comparison.csv` + an interactive `equity.html`. Env knobs for the LLM
-row: `VLLM_MODEL` (served id / LoRA name), `VLLM_CACHE_DIR` (per-model cache —
-required), `VLLM_MAX_TOKENS` (default 2048; raise for long theses), and
-`LLM_CONCURRENCY` (default 16 in-flight requests — vLLM batches them, ~13× over
-serial).
+Writes `comparison.csv` + an interactive `equity.html`. To evaluate a *trained*
+adapter, see [Reproduce a model's evaluation](#reproduce-a-models-evaluation).
+Env knobs for the LLM row: `VLLM_MODEL` (served id / LoRA name), `VLLM_CACHE_DIR`
+(per-model cache — **required**, key is the model-agnostic snapshot hash),
+`VLLM_MAX_TOKENS` (default 2048), `LLM_CONCURRENCY` (default 16, ~13× over serial).
 
-## Results so far
+## Models at a glance
 
-Out-of-sample **2024-01 → 2026-04**, 12 large-cap equities, weekly rebalance:
+**Shared input/output (every LLM model).** Each model reads one point-in-time
+snapshot and emits a short thesis ending in a single 5-class tag.
 
-| Strategy | Cumulative | Sharpe | MaxDD |
-|---|---|---|---|
-| Equal-weight (market) | **+126 %** | **1.07** | 27.8 % |
-| 12-1 momentum | +50 % | 0.66 | 19.6 % |
-| **Prompt-only LLM** (Qwen3-4B) | +43 % | 0.71 | **14.8 %** |
+- **Input** — ticker, last 15 days of OHLCV, technical indicators (SMA/RSI/MACD/…),
+  optionally `+` a PIT-joined multimodal block (news/fundamentals/sentiment/macro).
+  *Example (NVDA, 2017-01-24):* `Ticker: NVDA … Date|Open High Low Close Volume …
+  Indicators: 50-sma 2.35, RSI 52.3, MACD 0.05 …`
+- **Output** — `… the next-week posture is bullish … \n\n[[[BUY]]]`
+  (one of `STRONG_SELL/SELL/HOLD/BUY/STRONG_BUY`).
+- **Label / reward target** — deterministic, computed from *future* price (never an
+  input): `make_signal` = vol-adjusted forward return over 3/7/15 d (Alg S1), cut
+  into the 5 classes. The continuous value (e.g. `+1.29`) is the `signal` the graded
+  reward and the IC metric use.
 
-In this bull run equal-weight leads on raw return; the prompt-only LLM **lags on
-return but carries the lowest drawdown** and — the key finding — its daily
-returns are the **least correlated** to the baselines (0.63–0.69 vs 0.90 between
-the two quant strategies), i.e. a *differentiated* signal, not a momentum copy.
-Full write-up + caveats: [`docs/2026-06-21-three-way-comparison-memo.md`](docs/2026-06-21-three-way-comparison-memo.md)
-(`compare_lab/output/report.html` for the interactive version). The LLM
-decisions are provenance-verified (12/12 cached replies reproduced by the live
-model). **Robustness:** adding SPY/QQQ (14-ticker run, `compare_lab/output_14/`)
-*lowers* the LLM's Sharpe (0.71→0.55) while it keeps the lowest drawdown — the
-prompt-only signal is sensitive to universe composition (it goes long the ETFs
-too), which is itself an argument for training (#1).
+**The ladder** (OOS 2024-01→2026, 14-eq portfolio backtest; **IC** = rank-corr of the
+predicted class vs the label, 0=chance):
+
+| Model | What it is / how trained | CR | Sharpe | MDD | IC | Verdict |
+|---|---|--:|--:|--:|--:|---|
+| Equal-weight | market, no model | +143 % | 1.04 | 32 % | — | bull-run baseline |
+| 12-1 Momentum | price factor, no model | +52 % | 0.70 | 20 % | — | quant baseline |
+| **#2 Prompt-only** | Qwen3-4B, **zero-shot** (no training) | +43 %\* | 0.71\* | 14.8 %\* | — | differentiated, universe-sensitive |
+| SFT **v0** | LoRA, full-seq loss, imbalanced data | — | — | — | — | ❌ degenerate (all-HOLD, all-cash) |
+| **SFT v1** | LoRA + **completion-only loss + class balancing** | +29 % | 0.53 | **7.9 %** | 0.13 | ✅ keeper — most defensive, NO_TAG 0 % |
+| SFT v2 | v1 + **teacher distillation** (Qwen3-30B, §8 theses) | +34 % | 0.46 | 21 % | 0.13 | ❌ regression (verbose → risk↑, 9 % no-tag) |
+| GRPO (matrix) | RL on v1, asymmetric 5×5 decision reward | +37 % | 0.58 | 22 % | 0.19 | ⚠️ best CR, lost v1's defense + 10 % no-tag |
+| Multimodal SFT/GRPO | v1 recipe + news/fund/sentiment input | ≈0 | <0 | — | 0.17 | ❌ collapsed (all-SELL / over-long) |
+| Two-track (v1-reg / mm-reg) | anti-overfit SFT + **diversity reward, β=0** | +34 % | 0.54 | 18 % | 0.18 | ✅ repaired the collapses (→ ~v1 level) |
+| **GRPO graded** ⭐ | RL on v1-reg, **continuous `bet × signal`** reward | **+53 %** | **0.93** | 11 % | 0.19 | 🟢 best bull-window return — *but see findings* |
+| **GBM (tabular)** | gradient-boosting on technical features, **not an LLM** | — | **1.14**† | 12 %† | **0.24** | ⭐ best predictor *and* best net trader |
+
+<sub>\* prompt-only is the **12-eq** run (other rows are the 14-eq portfolio); on the
+14-eq universe its Sharpe falls to 0.55 (it goes long the added ETFs) — universe
+sensitivity is itself an argument for training. † GBM = vectorised backtest, **net of
+10 bps/side** costs, (3,7,15)-d weekly. Dead-end micro-experiments (deeper GRPO,
+context-richness levers) are in the [memo](docs/2026-06-21-three-way-comparison-memo.md).</sub>
+
+## What we learned (honest findings)
+
+1. **Prediction ≠ profit.** The bull-window Sharpes (incl. graded's 0.93) are largely a
+   *long-bias dividend* of a rising market — in the flat 2025-H1 slice every LLM loses,
+   and graded loses −4.3 % *despite a higher IC there*. Judge skill by IC and by net-of-
+   baseline returns across regimes, not raw bull Sharpe.
+2. **There is a signal ceiling, and it's ~0.24 IC** on price/technical data. Every working
+   LLM sits at 0.13–0.19; a strong GBM tops out at 0.24. More features / cross-sectional
+   framing / a bigger teacher do **not** move it — IC is *input-bound*.
+3. **The cap is horizon- and cost-bound, not model-bound.** Shortening the label horizon
+   to 2–5 d lifts achievable IC to 0.33, but the faster rebalancing it needs gives the
+   gain back to transaction costs — net Sharpe peaks at the current 3/7/15-d weekly.
+4. **A plain GBM beats every LLM here.** On tabular technical prediction the LLM is the
+   wrong tool (it under-uses precise numerics); GBM IC 0.24 / net SR 1.14 > every trained LLM.
+5. **The multimodal signal was news-driven.** It looked like an orthogonal regime-hedge
+   (CV IC ~0.12, positive in 2025-H1) but a news-less walk-forward on fresh 2025-H2→2026
+   data scores ~0.02 — and `news.parquet` is the one stale feed (ends 2025-06). A real
+   multimodal push needs a fresh news pull (external API).
+6. **vs the paper:** on its own window our best GRPO matches Sharpe (1.51 vs 1.57) but the
+   **drawdown is 2× worse** (5.5 % vs 2.8 %) — the real gap is risk/regime control, which
+   an oracle check shows is a *prediction* limit, not a sizing one.
+
+**Net:** the simplest defensible model (SFT v1) is the most defensive; graded-reward GRPO
+gives the best bull-window return; a non-LLM GBM is the best actual predictor. The binding
+constraint is the input's predictive content (IC ~0.24) and transaction cost — not reward
+shape, RL depth, model size, or hardware.
+
+## Reproduce a model's evaluation
+
+```bash
+# 1. serve a trained adapter as a vLLM LoRA, then point the backtest at it.
+#    cache key = snapshot hash (model-agnostic) → each model needs its own cache dir.
+VLLM_MODEL=sft-v1 VLLM_CACHE_DIR=compare_lab/.cache_sftv1 \
+  uv run python -m compare_lab.run_comparison --llm --out compare_lab/output_sftv1
+
+# 2. honest-lens analysis from cached decisions (no GPU):
+uv run python -m compare_lab.eval_labels   .cache_sftv1 .cache_graded_full  # label-fidelity IC
+uv run python -m compare_lab.compare_paper .cache_graded_full               # 1:1 vs the paper
+uv run python -m compare_lab.make_report --out docs/2026-06-29-results-report.html
+```
+
+Trained adapters live in `data/sft_adapter_v{0,1,2}/` + the GRPO outputs (gitignored).
+Training code: `compare_lab/sft/` (LoRA SFT, distillation) and `compare_lab/grpo/`
+(TRL GRPOTrainer on DGX Spark GB10; rewards in `grpo/rewards.py`). Build the targets with
+`labeling.py` (`make_signal` / 5-class labels).
 
 ## Data
 
@@ -157,90 +217,19 @@ the macro leak is caught by a `G2_macro_release_lag` gate).
 **publish/filing timestamp** ("available as of trading day *t*") — any
 future-dated leakage invalidates the backtest.
 
-## Roadmap
+## Status & next
 
-- **Sub-project 1 — comparison substrate + baselines** ✅ done
-  (`docs/superpowers/specs/2026-06-15-compare-lab-eval-substrate-design.md`).
-- **Task 11 — prompt-only LLM row** ✅ done — `Qwen3-4B-Instruct-2507` served
-  single-node vLLM (`--enforce-eager`, BF16) on DGX Spark via `sparkq`; LLM row
-  landed and provenance-verified.
-- **Sub-project 2 — train Trading-R1** 🟢 in progress
-  (`docs/superpowers/specs/2026-05-25-trading-r1-dgx-spark-design.md`):
-  - ✅ `labeling.py` — volatility 5-class labels (Algorithm S1); distribution
-    matches paper Table 2 (Strong-Sell→Strong-Buy: 3/12/38/32/15%).
-  - ✅ SFT **v0** — LoRA on Qwen3-4B (`compare_lab/sft/`), trained on pre-2024
-    data (leak-safe); eval token-acc ~80% but **degenerate (all-HOLD)**.
-  - ✅ SFT **v1** — completion-only loss + class balancing fixed the collapse
-    (loss 0.53→0.089, `data/sft_adapter_v1/`, served `sft-v1`). Backtest
-    (14-ticker, `output_sftv1/`): CR +29 %, Sharpe 0.53, **MDD 7.9 %** — most
-    defensive in the set, **NO_TAG 0 %** (vs prompt-only 8.2 %). Fixed the
-    collapse; didn't lift return.
-  - ❌ SFT **v2** — teacher distillation (Qwen3-30B-A3B, reverse-reasoning §8;
-    250 theses, `data/sft_adapter_v2/`, served `sft-v2`) **evaluated → regression
-    vs v1**: CR +34 % but MDD 20.7 % (v1 7.9 %), Sharpe 0.46 (v1 0.53), and the
-    verbose §8 style fails to terminate on **9.2 %** of inputs (NO_TAG, vs v1 0 %).
-    The long distilled rationale hurt both risk and format — see the memo. Keep v1.
-  - ⚠️ **GRPO** RL on the **v1** base (`compare_lab/grpo/`, TRL GRPOTrainer on
-    GB10, decision-driven — structure/evidence reward a flat 0 on the terse v1
-    base) **evaluated → mixed**: best of the trained models on **CR +37 % /
-    Sharpe 0.58**, but lost v1's defense (MDD 21.6 % vs 7.9 %) and regressed parse
-    to **10 % NO_TAG** (echoes the template menu instead of one class). v1 still
-    the keeper; GRPO promising-but-unfinished (needs a parse guardrail + more
-    epochs / higher entropy). Numbers + analysis in the memo.
-- **Data integration** ✅ news/fundamentals/sentiment/macro join the snapshot by
-  PIT timestamp (`compare_lab/multimodal_context.py`, opt-in in `snapshot.py`);
-  delivered-data defects fixed (`*_pit.parquet`). See
-  [`docs/DATA_STORE.md`](docs/DATA_STORE.md).
-- ❌ **Gap-closing cycle 1 — multimodal SFT→GRPO** (train 2024 / eval 2025-H1,
-  12-equity; spec+plan `docs/superpowers/{specs,plans}/2026-06-25-…`) **evaluated →
-  did not close the gap.** OFF/ON ablation: multimodal helped *parse* (NO_TAG
-  8.3→1.3 %) but not *returns* (both ~−6 %). Trained models collapsed — SFT-mm to
-  near-all-SELL (all-cash, CR≈0), GRPO over-long (−10 %) — in a flat 2025-H1 window
-  (equal-weight only +5.3 %). Caveats: thin ~900-tok snapshot (vs paper 15–23k),
-  short noisy window, tiny train sets. Numbers + analysis in the memo.
-  - **Lever 1 tested — richer context is *not* the bottleneck.** Enriched the
-    snapshot (3-bucket news ≤50 + 12 sentiment events, ~900→~2k tok) and re-ran the
-    prompt-only ablation: parse improved monotonically (NO_TAG 8.3→1.3→0.6 %) but
-    **CR got *worse*** (−6.3→−8.4 %) — more context → more confident/aggressive bets,
-    not better calls. Didn't retrain (de-risk).
-  - **Lever 2 tested — regime isn't the excuse; it's method + training data.** On the
-    same flat 2025-H1 window, price-only **SFT-v1 survives** (+0.6 %, MDD 9.3 % — only
-    positive trained model), while the multimodal versions are *worse* than their
-    price-only counterparts. The window is survivable; the multimodal models lack v1's
-    cross-regime robustness (confounded by their 1-yr/290-ex training vs v1's 7-yr/4.2k).
-  - ❌ **Lever 3a — deeper GRPO on v1 (vLLM, 2 epoch, num_gen 12, temp 1.2)** made it
-    *worse*, not better (Sharpe 0.33 vs prior GRPO 0.58 / v1 0.53). RL depth is not the
-    lever: entropy stuck ~0.028 (no exploration on the confident v1 base), and the 10 %
-    NO_TAG is the model **copying the prompt's literal menu** `[[[A|B|C|D|E]]]` — a prompt
-    bug, not an RL target. Real levers now: **exploration** (entropy in the objective /
-    less-confident base) + **prompt design**. (Also verified vLLM GRPO rollout works on
-    GB10, ~3× faster — so hardware was never the cap.) Next sub-cycle: lever 3b / prompt fix.
-  - ✅ **Prompt fix** — dropped the copyable `[[[A|B|C|D|E]]]` menu from the prompt; a
-    one-line change cut NO_TAG 8.3 %→2.6 % (menu echoes 100 %→0 %), what 3a's RL guardrail
-    couldn't. Now the shared base for all further training.
-  - 🟢 **Two parallel tracks (anti-overfit SFT + exploration GRPO)** — the collapses are
-    over-fit-to-confidence (v1 entropy 0.028; mm-SFT all-SELL). Shared less-confident SFT
-    recipe (dropout↑, fewer epochs) then RL with a diversity reward + lower KL on the
-    price-only track; regularized SFT→GRPO on the multimodal track. Spec:
-    `docs/superpowers/specs/2026-06-29-…`. ✅ **Both diagnosed causes fixed:** Track A
-    (v1-reg) restored within-group decision diversity (StrongBuy collapse gone) and
-    recovered Sharpe **0.33→0.54** (24–26); Track B (mm-reg) **dissolved the all-SELL
-    collapse** (97 %→BUY 49/HOLD 28/SELL 12) — best multimodal result, edges v1 on the
-    2025-H1 Sharpe. The methods work; v1's defensive MDD 7.9 % is still the ceiling to beat.
-  - 🟢 **Stronger verifiable reward (graded continuous)** — replace the coarse 5×5
-    decision matrix with `bet × clip(make_signal, ±3)` (dense, magnitude-aware; losing
-    trades ×1.5). GRPO from the v1-reg base — gave the first learnable GRPO gradient
-    (reward −1.58→+0.33) and the **best bull-window return** (Sharpe 0.93, CR +52.7 %,
-    2024–26). ⚠️ **But not a prediction breakthrough** (honest-lens audit, the reviewer's
-    `eval_labels`/`compare_paper`): graded's label-fidelity IC is **0.19 — the same ~0.2
-    ceiling as every model**; in flat 2025-H1 it has *higher* IC (0.25) yet **loses −4.3 %**,
-    so the 0.93 is bull long-bias + reward concentration, not skill. vs paper: Sharpe
-    comparable (1.51 vs 1.57), **drawdown 2× worse** (5.5 % vs 2.8 %). Real levers now:
-    **drawdown control + regime robustness**, and more predictive *inputs* (IC is
-    input-bound). Report: `docs/2026-06-29-results-report.html`.
+Comparison substrate + baselines + prompt-only LLM ✅ done; the SFT→GRPO ladder is
+trained and audited (see [Models](#models-at-a-glance)). The open lever is the
+**input's predictive content** — every other knob (reward, RL depth, model size,
+multimodal-as-fed) is capped by the IC ceiling. Candidate next steps: a fresh **news**
+pull to revive the multimodal signal (free — extend `crawl_news.py`'s `MONTHS` range past
+2025-06 and re-run; Google-News-RSS, no key), or productionising the GBM signal.
+Design docs in `docs/superpowers/specs/`; full chronological log in
+[`docs/PROGRESS-2026-06-21.md`](docs/PROGRESS-2026-06-21.md).
 
 ## Testing
 
 ```bash
-uv run python -m pytest -q   # 52 passing
+uv run python -m pytest -q   # 70 passing
 ```
