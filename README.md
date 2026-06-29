@@ -22,7 +22,7 @@ evaluation harness so the numbers are actually comparable:
 |---|---|---|
 | **#3** | **Quant factor** (12-1 momentum) | ✅ running |
 | **#2** | **Prompt-only open-source LLM** (Qwen3-4B) → 5-class signal | ✅ **landed** (provenance-verified) |
-| **#1** | **Trained Trading-R1** (Qwen-class, SFT → GRPO) | 🟢 **v1** keeper (MDD 7.9 %, NO_TAG 0 %) · **v2** distilled → regression · **GRPO** → Sharpe 0.58 but lost defense + echo · **multimodal** → parse not returns; collapses. **Fixed (latest):** prompt fix killed the echo (NO_TAG→2.6 %); anti-overfit + diversity-reward GRPO **dissolved the collapses** (Track B all-SELL→balanced) and recovered Sharpe 0.33→0.54 — methods work, but v1's defensive MDD 7.9 % still unbeaten |
+| **#1** | **Trained Trading-R1** (Qwen-class, SFT → GRPO) | 🟢 **Breakthrough — graded-reward GRPO** (continuous bet×signal): **Sharpe 0.93, CR +52.7 %, MDD 11.2 %** (2024–26), nearly 2× v1's Sharpe and best of any trained model. Path there: v1 (defensive keeper, MDD 7.9 %) → v2 distill/multimodal regressions → prompt fix (echo) + anti-overfit/diversity (un-collapsed) → **dense continuous reward broke v1's ceiling**. v1 still lowest absolute drawdown; bear-slice test next |
 
 Every approach emits the same thing — a **target-weight matrix
 `[date × ticker]`** — which is run through a single
@@ -229,10 +229,12 @@ future-dated leakage invalidates the backtest.
     2025-H1 Sharpe. The methods work; v1's defensive MDD 7.9 % is still the ceiling to beat.
   - 🟢 **Stronger verifiable reward (graded continuous)** — replace the coarse 5×5
     decision matrix with `bet × clip(make_signal, ±3)` (dense, magnitude-aware; losing
-    trades ×1.5). GRPO from the v1-reg base; **trained** (reward climbed −1.58→+0.33,
-    the healthiest GRPO curve yet), **eval running**. First attempt to *beat* v1's ceiling
-    rather than repair a failure — if the reward form doesn't break it, data is the real
-    bottleneck. Spec: `docs/superpowers/specs/2026-06-29-graded-…`.
+    trades ×1.5). GRPO from the v1-reg base. ✅ **Broke v1's ceiling:** Sharpe **0.93**
+    (vs v1 0.53 / prior GRPO 0.58), CR **+52.7 %**, MDD 11.2 % (2024–26), diverse mix,
+    NO_TAG 3.7 %. **Reward *density* was the lever, not data** — the dense bet×signal gave
+    the first learnable GRPO gradient (reward −1.58→+0.33). v1 still lowest absolute MDD
+    (most defensive); graded = best risk-adjusted. 2025-H1 still −4.3 % → bear-slice test
+    next. Spec: `docs/superpowers/specs/2026-06-29-graded-…`.
 
 ## Testing
 
