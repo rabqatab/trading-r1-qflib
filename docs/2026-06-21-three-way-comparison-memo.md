@@ -405,18 +405,23 @@ features) to find the *achievable* IC, then probed orthogonal signal:
   the LLM adds ~nothing orthogonal on price).
 - **Regime split (train 2024 / test flat 2025-H1):** GBM **price-only IC flips to −0.05**
   (the technical signal *inverts* out of a bull regime — the root of the drawdown/regime
-  weakness), while **GBM multimodal-only IC = +0.199** and, crucially, **trades positive:
-  CR +4.2 %, SR +0.43, MDD 16.7 % — the ONLY model that makes money in 2025-H1** (every LLM:
-  graded −1.01, v1 −0.30, mm-reg −0.17).
+  weakness), while GBM multimodal-only IC = +0.199 on that single split and traded positive
+  (CR +4.2 %, SR +0.43 — the only model in the black in 2025-H1, vs every LLM −0.17…−1.01).
+- **Robustness check (don't over-claim):** the single-split 0.199 was optimistic. A
+  **5-fold CV** of the multimodal-only GBM gives **IC = +0.120** vs a permutation null of
+  +0.01 ± 0.04 → **z = +2.5, a REAL but WEAK signal** (p≈0.006). Per-feature ICs are all ~0,
+  so the signal is **nonlinear/interaction-driven** (which is exactly why the LLM and linear
+  views miss it).
 
-**This reverses the "multimodal is useless" verdict.** Multimodal carries **orthogonal,
-regime-robust** signal; our LLM runs missed it because the LLM (a) under-extracts numeric
-features and (b) was fed raw headlines, not structured multimodal numbers a model can use.
-**The path to break 0.24 *and* close the drawdown/regime gap (the paper's real edge) is to
-extract the multimodal signal properly** — structured multimodal features into the model
-(GBM, or fed to the LLM as numbers), ideally regime-aware (price in trends, multimodal in
-chop). Caveat: 2025-H1 n is small and MDD still 16.7 % — needs broader-regime validation
-and likely a fresh/longer multimodal pull. But it is the first positive, hopeful lever.
+**Calibrated verdict — multimodal carries a real-but-weak, orthogonal, regime-hedging
+signal (CV IC ~0.12), not a dramatic alpha.** It still *reverses* the "multimodal is
+useless" read: it is significant, it is orthogonal to price (per-feature ~0 yet CV 0.12),
+and it is **positive in the flat regime where price inverts** — i.e. a regime hedge. The
+LLM runs missed it (under-extract numerics + raw headlines, not structured features). Lever:
+extract it properly (structured multimodal features, **regime-aware** — price in trends,
+multimodal in chop) for a modest IC lift + drawdown/regime robustness. Caveats: weak (0.12),
+small-n 2024-2025-H1 only, MDD still 16.7 % — needs a fresh/longer multimodal pull. Still the
+first positive, *verified* lever after the negatives.
 
 **The 0.93 is NOT from better prediction.** graded's IC (0.19) sits on the same ~0.2
 ceiling as everything; in 2025-H1 it has a *higher* IC (0.25) yet *loses money* — proving
