@@ -227,6 +227,11 @@ future-dated leakage invalidates the backtest.
     recovered Sharpe **0.33→0.54** (24–26); Track B (mm-reg) **dissolved the all-SELL
     collapse** (97 %→BUY 49/HOLD 28/SELL 12) — best multimodal result, edges v1 on the
     2025-H1 Sharpe. The methods work; v1's defensive MDD 7.9 % is still the ceiling to beat.
+  - 🟢 **Stronger verifiable reward (graded continuous)** — replace the coarse 5×5
+    decision matrix with `bet × clip(make_signal, ±3)` (dense, magnitude-aware; losing
+    trades ×1.5). GRPO from the v1-reg base; **training** (eval pending). This is the
+    first attempt to *beat* v1's ceiling rather than repair a failure — if the reward
+    form doesn't break it, data is the real bottleneck. Spec: `docs/superpowers/specs/2026-06-29-graded-…`.
 
 ## Testing
 
