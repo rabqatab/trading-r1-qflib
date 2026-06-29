@@ -385,6 +385,16 @@ trained model. *Initially read as a ceiling-break.* **The honest-lens audit
 | 2025-H1 (flat) | **+0.25** (*higher* IC) | **−1.01 (CR −4.3 %)** | "learned it, but PROXY/regime is the problem → fix label" |
 | vs paper (2024-06–08, per-ticker) | — | 1.51 vs paper 1.57 | MDD 5.5 % vs paper **2.8 %** |
 
+**Lever 3 (drawdown control) — diagnosed as a dead end without better prediction.**
+`oracle_check` (label-as-signal, look-ahead) prints SR 8.46 / **MDD 2.73 %** OOS — i.e. the
+pipeline/sizing are sound and **perfect predictions hit the paper's 2.8 % drawdown.**
+`sizing_compare` (vary only position sizing on graded's fixed calls) shows the deployed
+long-only 1/8 rule already gives the **lowest drawdown (8.2 %)**; long-short schemes raise
+return but blow drawdown to ~19 %. ⇒ **the drawdown gap is a *prediction* problem, not a
+sizing/reward one** — you cannot size your way to low drawdown with IC-0.2 calls. With the
+IC input-bound at ~0.2, the **only genuine lever left is more predictive inputs/data**;
+reward density, sizing, RL, and teacher quality all operate *under* that ceiling.
+
 **The 0.93 is NOT from better prediction.** graded's IC (0.19) sits on the same ~0.2
 ceiling as everything; in 2025-H1 it has a *higher* IC (0.25) yet *loses money* — proving
 the Sharpe is a **bull-window long-bias + the reward's conviction-concentration**, not
