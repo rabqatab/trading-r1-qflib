@@ -1,172 +1,131 @@
-# Better LLM training methods for our task — arXiv survey (2026-06-30)
+# LLM training methods for our task — literature survey & analysis (2026-06-30)
 
-> Goal: find training methods that fit *our* diagnosed bottlenecks — LLM under-extracts
-> numerics vs a GBM (IC 0.19 vs 0.24), weak/noisy verifiable reward (reward gate fails),
-> small data (GRPO ~267), and a strong non-LLM baseline (GBM). LexiconArxiv was down; pulled
-> via arXiv web search + paper reads.
+> Question: what training methods could improve *our* model — a Qwen3-4B emitting a 5-class
+> trading signal — given the diagnosed bottlenecks? Sources: arXiv (2025–26) + venue-filtered
+> published work via LexiconArxiv. Search done over three passes (2025, 2026, published).
 
-## Honest framing first
+## TL;DR
 
-None of these break the input ceiling (IC ~0.24 is input-bound — proven by GBM-on-31k and
-the [proxy-validity test](2026-06-30-gbm-llm-proxy-validity.md)). They are **"approach the
-ceiling" methods**: they target the *LLM's* ~0.05 under-extraction headroom (SFT extracts
-60 % of the GBM ceiling, GRPO 88 %) and the small-data / weak-reward instability — i.e. they
-could give us the **best-possible LLM (≈ GBM 0.24)**, not a break past it. A real break still
-needs better *input* (article bodies, alt-data) or lower costs.
+- **The ~0.24 IC ceiling is input-bound and now *theoretically* expected:** published/preprint
+  work shows **GRPO reweights latent pretrained ability, it does not create new capability** — so
+  RL cannot transcend a ceiling set by the input/pretraining. No method below claims to break it.
+- **Two genuinely new directions that fit us (both = "use the LLM for what it's good at"):**
+  1. **NOVER — verifier-free RL** (EMNLP 2025, code): sidesteps our broken *noisy verifier* (the
+     matrix/label reward that fails the reward gate).
+  2. **SCRL-LG — LLM as news *encoder*** feeding a tabular predictor (the published version of the
+     hybrid our own analysis converged on; the LLM's edge is text, not numerics).
+- **To merely *approach* the ceiling:** PRPO (RL that closes the LLM-vs-GBDT tabular gap) + a
+  noisy-reward correction.
+- **New risk surfaced & tested:** *pretraining contamination* — our LLM's pre-cutoff IC is partly
+  recall, not prediction (see §4D).
 
-## #1 — PRPO: Permutation Relative Policy Optimization ([2510.17385](https://arxiv.org/abs/2510.17385)) ⭐ best fit
+## 1. Our bottlenecks (what the survey must address)
 
-The closest paper to our exact problem: an RL post-training method that makes **Qwen3-8B match
-GBDTs on tabular prediction** across 139 OpenML datasets (and beats DeepSeek-R1-685B by 53 %).
-Two mechanisms, both directly useful to us:
+| # | Bottleneck | Evidence |
+|---|---|---|
+| A | LLM **under-extracts** tabular signal | LLM IC 0.13–0.19 vs GBM 0.24 on the same features |
+| B | **Weak/noisy verifiable reward** | every model FAILS the reward gate (mean matrix reward < best-const); IC ≈ "barely better than random" |
+| C | **Small data** | GRPO ~267 examples; collapses |
+| D | **Pretraining contamination** | OOS 2024–26 overlaps Qwen3-2507's pretraining → possible recall |
 
-1. **Column-permutation invariance as a structural prior.** Per example, generate `m=4` random
-   permutations of the feature columns (our 12 indicators), serialize each, and reward
-   consistency. Trees are natively feature-order-invariant; LLMs aren't — this *teaches* the
-   invariance and is also free data augmentation (267 examples × 4 = ~1,068 views — big for
-   our small set).
-2. **Two-level advantage** (densifies our weak/sparse reward):
-   - intra-permutation: `Â¹ = (R − μ_k)/σ_k` (z-score within a permutation's G rollouts)
-   - inter-permutation: `Â² = (R − μ_global)/σ_global` (z-score across all m×G)
-   - final: `Â = α·Â¹ + (1−α)·Â²`, **α=0.1** (90 % global).
-   - GRPO/PPO-clip objective with these advantages.
+## 2. Is the ceiling breakable? (theory says no — by modelling alone)
 
-Reward (Eq. 7, classification): 1.0 correct · 0.1 valid-but-wrong · 0.0 malformed. Settings:
-Qwen3-8B, G=5 rollouts, m=4 perms, lr 1e-6, β(KL) 0.001, 30 epochs.
+- **"Can GRPO Help LLMs Transcend Their Pretraining Origin?"** ([2510.15990](https://arxiv.org/pdf/2510.15990)).
+  GRPO **reweights/sharpens latent capability; does not create new knowledge.** Where the base's
+  input signal is weak, RL cannot compensate. ⇒ the *theoretical* reason our RL never beat 0.24.
+- Corroborated empirically by our own [GBM-proxy test](2026-06-30-gbm-llm-proxy-validity.md): GBM IC
+  ≥ every LLM IC, and saturates at ~0.24 regardless of data (so the *input*, not the model/RL/data
+  quantity, is the cap). The break needs better **input** (article bodies, alt-data) or lower costs.
 
-**Adaptation for us:** serialize the indicators as a permutable feature block, m=4 perms,
-two-level advantage on top of our graded/matrix reward, our Qwen3-4B base. Expected: lift
-0.19 → ~0.24 (close the GBDT gap) + stabilize the small-data GRPO that collapsed before.
+## 3. Methods, mapped to each bottleneck
 
-## #2 — Noise-corrected GRPO ([2510.18924](https://arxiv.org/abs/2510.18924)) — for our noisy reward
+### A. Closing the LLM-vs-GBDT tabular gap → **PRPO** ⭐ ([2510.17385](https://arxiv.org/abs/2510.17385))
+RL post-training that makes **Qwen3-8B match GBDTs** on 139 OpenML tabular datasets. Two mechanisms,
+both ours to reuse:
+1. **Column-permutation invariance** — m=4 random feature-order permutations per example, reward
+   consistency. Teaches the order-invariance trees have natively + free augmentation (267×4 views).
+2. **Two-level advantage** (densifies sparse reward): intra-perm `Â¹=(R−μ_k)/σ_k` + inter-perm
+   `Â²=(R−μ_global)/σ_global`, final `Â=α·Â¹+(1−α)·Â²`, **α=0.1** (90 % global), GRPO/PPO-clip.
+   Reward: 1.0 correct / 0.1 valid-wrong / 0.0 malformed. Settings: Qwen3-8B, G=5, m=4, lr 1e-6,
+   β 0.001, 30 epochs.
+- Crossover context: **GBDT beats LLM beyond ~8 shots** ([2411.04324](https://arxiv.org/abs/2411.04324));
+  at our data size pure-tabular LLM *should* lose — so PRPO's job is parity (≈0.24), not a break.
 
-Our labels (vol-adjusted forward returns) are a *noisy proxy* → the reward is noisy → the
-advantage signal is weakened (cf. [2603.16140](https://arxiv.org/pdf/2603.16140), "noisy data
-is destructive to RLVR"). This method debiases it:
+### B. Weak/noisy verifier (our reward-gate failure)
+- **NOVER — verifier-free RL** ⭐ (EMNLP 2025, tier-0, [code](https://github.com/thinkwee/nover);
+  `DOI 10.18653/v1/2025.emnlp-main.378`). Computes reward from the answer using only SFT data, **no
+  external verifier**; beats same-size R1-671B distillation by 7.7 %. *Directly* sidesteps the noisy
+  matrix/label reward we're stuck optimizing. Highest-value new direction.
+- **An Imperfect Verifier is Good Enough** ([2604.07666](https://arxiv.org/pdf/2604.07666), 2026).
+  Estimate per-verifier FPR/FNR, adaptively down-weight uncertain examples, iteratively refine.
+  Robust at 30–50 % error / barely-better-than-random verifiers = our regime.
+- **Noise-corrected GRPO** ([2510.18924](https://arxiv.org/abs/2510.18924)). Model reward as
+  Bernoulli flips; correct: `r̂=(r̃−ρ⁺)/(1−ρ⁺−ρ⁻)`, `Â=r̂−mean(r̂)` → unbiased gradient. Needs
+  ~1,500 balanced calibration examples; assumes binary reward (adapt: binarize "right direction").
+- **VRPO** ([2508.03058](https://arxiv.org/abs/2508.03058)). Add a value model to absorb unstable
+  signal → fixes GRPO collapse under weak supervision (our all-SELL/all-StrongBuy collapses).
+- Reward densification (all ICLR 2026): **HERO/Hybrid-RL** (verifier + reward-model),
+  **Curriculum easy→hard RLVR**, **RLBFF** (binary flexible feedback).
 
-- Estimate flip rates ρ⁺ (false-positive), ρ⁻ (false-negative) on a ~20 % balanced calibration
-  split (needs ~1,500 balanced examples for ±0.1 at 95 %).
-- Corrected reward: `r̂ = (r̃ − ρ⁺)/(1 − ρ⁺ − ρ⁻)`; debiased advantage `Â = r̂ − mean(r̂)`.
-- Dr.GRPO variant (M=1) → provably unbiased gradient. Gains up to +6.7 pp (math) even at
-  ρ⁺+ρ⁻ ≈ 0.6.
+### C. Small data
+- PRPO's permutation trick = built-in augmentation (×m).
+- **TS foundation-model pretraining** ([2507.07296](https://arxiv.org/abs/2507.07296)): 3–10× less
+  data for equal performance.
+- **Retrieval augmentation** (FinSeer, [2502.05878](https://arxiv.org/abs/2502.05878)): retrieve
+  similar historical patterns for small-data stock movement.
 
-**Caveat:** assumes binary reward r*∈{0,1}; our matrix/graded reward is continuous, and our
-calibration data is thin — so this needs adapting (e.g. binarize "right direction" for the
-flip-rate estimate) before it applies cleanly. Principle is sound: debias the noisy-label
-reward instead of trusting it raw.
+### D. Pretraining contamination — surfaced *and tested*
+- **"Profit Mirage"** ([2510.07920](https://arxiv.org/pdf/2510.07920)): LLM financial agents leak via
+  lookahead, event memorization, **and pretraining contamination**; reported returns "dramatically
+  inflated." Our OOS (2024–26) overlaps Qwen3-4B-Instruct-**2507** (cutoff ~2025-07).
+- **Our test (GBM as contamination-free control, CUT=2025-08-01):**
+  - **graded GRPO:** LLM IC 0.203→0.150 while the GBM control held 0.201→0.210 → **excess drop
+    +0.062 ⇒ contamination suspected** (recall inflated the pre-cutoff IC). Fits "GRPO amplifies
+    *pretrained* memory" (§2). graded's honest IC ≈ post-cutoff **0.15**, not 0.19.
+  - **SFT v1:** 0.126→0.124, no excess → clean; its 0.13 is trustworthy.
+  - Caveat: post n≈430 (~1.3 SE) → suggestive, not conclusive; firm up on fresh post-cutoff data.
+  - Implication: the GBM (cutoff-stable 0.21) is the cleanest predictor; report LLM IC on the
+    post-cutoff slice to be contamination-safe.
 
-## #3 — VRPO: value model for weak-signal stability ([2508.03058](https://arxiv.org/abs/2508.03058))
+## 4. The LLM's *right* role — hybrid, text not numerics
 
-"GRPO suffers significant collapse without a value model on weaker models / noisy supervision."
-We *saw* that collapse (all-SELL / all-StrongBuy). Adding a learned value model to absorb the
-unstable signal gives more reliable advantage estimation. Candidate fix for our collapse modes
-that's orthogonal to PRPO.
+- **SCRL-LG** ([2310.05627](https://arxiv.org/abs/2310.05627)): LLM = **news-headline feature
+  encoder**, embeddings aligned with stock features, a separate RL/Local-Global model predicts. The
+  published version of the hybrid our analysis reached — the LLM's value-add is *news encoding*
+  (which a GBM can't do), not numeric decision-making.
+- **FLAG-Trader** (ACL 2025 Findings, tier-1, **same author group as Trading-R1**;
+  `DOI 10.18653/v1/2025.findings-acl.716`): a partially-PEFT LLM **is** the RL policy, trained by
+  policy gradient on trading rewards. Confirms our SFT→GRPO design is legitimate/publishable — but
+  makes no signal-ceiling-breaking claim.
 
-## #4 — Literature confirms our GBM>LLM finding + points the LLM's real job
+## 5. Recommended priority (when the expanded universe arrives)
 
-- **GBDT vs LLM few-shot ([2411.04324](https://arxiv.org/abs/2411.04324)):** LLM wins only at
-  ≤8 shots; beyond that GBDT wins on tabular. At our data size, a pure-tabular LLM *should*
-  lose to the GBM — exactly what we see. ⇒ the LLM's value-add must come from **text** (news),
-  which the GBM can't read; pure-numeric LLM training is the wrong battle.
-- **Sample-efficiency levers for small data:** TS foundation-model pretraining needs 3–10× less
-  data ([2507.07296](https://arxiv.org/abs/2507.07296)); retrieval-augmentation (FinSeer,
-  [2502.05878](https://arxiv.org/abs/2502.05878)) helps small-data stock movement; "TS
-  forecasting as reasoning" with reinforced LLMs ([2506.10630](https://arxiv.org/pdf/2506.10630)).
+1. **Hybrid (SCRL-LG-style):** LLM news-encoder → embeddings/features → GBM predictor. Plays each
+   tool to its strength; addresses bottleneck A by not fighting the LLM-on-tabular battle.
+2. **Verifier-free RL (NOVER):** drop the noisy matrix/label reward that fails the gate; incentive-
+   train from SFT data. Addresses bottleneck B at its root.
+3. **PRPO** (permutation augmentation + two-level advantage) to push the *pure-LLM* path to GBDT
+   parity (~0.24) and fix small-data collapse — the "approach the ceiling" option.
+4. Stack a noisy-reward correction (Imperfect-Verifier / noise-corrected advantage) + VRPO value
+   model if collapse persists.
 
-## Recommended plan (when the expanded universe lands)
+All four lift the LLM *to* the ceiling or use it better; none break the input ceiling — that still
+needs richer input (article bodies, alt-data) or lower transaction cost.
 
-1. **PRPO-style GRPO** (permutation augmentation + two-level advantage) on the bigger universe —
-   the single highest-leverage method; should finally make the LLM *match* the GBM (0.24) and
-   fix small-data collapse. Resolves the "does data + better RL close the gap" question.
-2. Stack **noise-corrected advantage** (binarized-direction flip-rate) + optionally a **VRPO
-   value model** if collapse persists.
-3. Keep the LLM's *unique* job = reading **news text** (GBDT can't); pure-tabular parity with
-   the GBM is the floor, not the goal.
+## 6. Reference index
 
-Bottom line: these lift the LLM to the ceiling, not past it. The break is still input/data.
-
----
-
-## 2026 follow-up search — theory confirms the ceiling + a new leakage risk
-
-A second pass for **2026** papers (arXiv 26xx) surfaced three that change our thinking:
-
-### A. "Can GRPO Help LLMs Transcend Their Pretraining Origin?" ([2510.15990](https://arxiv.org/pdf/2510.15990)) — theory behind our ceiling
-Finding: **GRPO reweights/sharpens capabilities already latent in the pretrained model; it does
-not create new ones.** Where the base model's signal on the inputs is weak, **RL cannot
-compensate — it cannot transcend the ceiling set by pretraining/input.** This is the *theoretical
-explanation* for our empirical wall: our GRPO never broke IC ~0.24 because RL amplifies latent
-signal, and the signal isn't in the input. Reinforces: the lever is **input/data, not more RL**.
-
-### B. "An Imperfect Verifier is Good Enough" ([2604.07666](https://arxiv.org/pdf/2604.07666)) — best fit for *our* reward
-2026, more adaptive than 2025's noise-corrected GRPO: estimate per-verifier FPR/FNR, **adaptively
-down-weight high-uncertainty examples**, iteratively refine noise estimates. Robust at **30–50 %
-error and weak-signal (verifier barely better than random)** — which is *exactly* our regime
-(IC ~0.19 label = a barely-better-than-random "verifier"). This is the method to use for our
-noisy label/reward, ahead of the 2025 variant.
-
-### C. ⚠️ NEW RISK — pretraining contamination ("Profit Mirage", [2510.07920](https://arxiv.org/pdf/2510.07920))
-LLM financial agents leak via lookahead, event memorization, **and pretraining contamination** —
-and reported returns are "dramatically inflated" vs leak-free. **This applies to us:** our OOS
-window (2024-01→2026) overlaps Qwen3-4B-Instruct-**2507**'s pretraining (cutoff ~mid-2025), so the
-LLM may *recall* 2024–2025 outcomes rather than predict them — inflating its IC. The **GBM has no
-such contamination** (trained only on our pre-2024 data), so it is the *cleaner* signal — our
-"GBM > LLM" gap may even understate the LLM's true-predictive deficit.
-- **Tested (2026-06-30), GBM as the contamination-free control:** split IC at CUT=2025-08-01.
-  - **graded GRPO:** LLM IC 0.203→0.150 (drop +0.053) while the **GBM control held 0.201→0.210**
-    (post-cutoff is *not* harder) → **excess LLM drop +0.062 ⇒ contamination suspected** (recall
-    inflated the pre-cutoff IC). Strikingly consistent with "GRPO amplifies *pretrained* ability"
-    (A): RL sharpened the base's 2024–25 *memory*, which evaporates post-cutoff.
-  - **SFT v1:** 0.126→0.124 (no excess) → contamination-clean; its 0.13 is trustworthy.
-  - Caveat: post n≈430 (~1.3 SE) → *suggestive, not conclusive*; firm up on the post-cutoff
-    fresh window once the universe expands.
-  - **Implication:** graded's *honest* IC is nearer its post-cutoff **0.15** than 0.19 → the
-    LLM-vs-GBM gap is *wider* than it looked, and the GBM (0.21, cutoff-stable) is the cleanest
-    predictor. Report LLM IC on the post-cutoff slice to be contamination-safe.
-
-**Net of the 2026 pass:** (1) the ceiling is now *theoretically* expected (RL can't transcend
-pretraining/input); (2) use the *Imperfect-Verifier* noise model for our weak reward; (3) audit
-**pretraining contamination** — our LLM IC may be partly recall, making the honest LLM signal even
-weaker and the GBM the more trustworthy predictor.
-
----
-
-## Published / peer-reviewed work (third pass, venue-filtered via LexiconArxiv)
-
-Centering on *published* (not preprint) methods. Three give concrete new directions:
-
-### P1 — NOVER: verifier-free RL (EMNLP 2025, tier-0; [code](https://github.com/thinkwee/nover)) ⭐ sidesteps our broken verifier
-`DOI 10.18653/v1/2025.emnlp-main.378`. Incentive-training RL that needs **only standard SFT data,
-no external verifier** — computes the reward from the answer itself, beating same-size R1-671B
-distillation by 7.7 %. **Why it matters for us:** our whole reward-gate failure stems from a
-*noisy external verifier* (the matrix/label reward). NOVER says: don't fight the noisy verifier —
-go verifier-free. A concrete, code-backed alternative to GRPO-on-a-noisy-reward; also enables
-"inverse incentive training." High-value to try.
-
-### P2 — SCRL-LG: LLM as news-feature encoder + RL alignment ([arXiv 2310.05627](https://arxiv.org/abs/2310.05627)) — the published version of our hybrid
-The LLM is a **news-headline feature extractor**, not the decision-maker; its embeddings are
-aligned with stock features in a shared space, and an RL/Local-Global model predicts. Validated on
-China A-share. **This is exactly the hybrid our analysis converged on** (LLM reads text — its real
-edge; a tabular model predicts). Published precedent that the LLM's value-add is *news encoding*,
-not numeric decision-making.
-
-### P3 — FLAG-Trader (ACL 2025 Findings, tier-1) — published precedent for *our* LLM-as-policy approach
-`DOI 10.18653/v1/2025.findings-acl.716`, **same author group as Trading-R1** (Xie/Huang/Liu). A
-partially-PEFT-fine-tuned LLM **is** the RL policy network, trained by policy gradient on trading
-rewards. Confirms our SFT→GRPO design is a legitimate, publishable approach — but note it makes no
-claim to beat a signal ceiling; it is about agentic multi-step decisions.
-
-### Also noted (reward design for our weak/sparse signal)
-- **Hybrid Reinforcement / HERO** (ICLR 2026): integrate a verifier signal *with* reward-model
-  scores to densify sparse reward.
-- **Curriculum RL, easy→hard** (ICLR 2026): curriculum RLVR improves reasoning under weak signal.
-- **RLBFF** (ICLR 2026): binary flexible feedback bridging RLHF and RLVR.
-- Context benchmarks: **FinanceReasoning**, **FLaME** (ACL 2025).
-
-### Updated recommendation
-Two genuinely new, published directions beyond "PRPO to approach the ceiling":
-1. **NOVER (verifier-free RL)** — stop optimizing the noisy matrix/label reward that fails the
-   gate; train verifier-free from the SFT data. Code exists.
-2. **SCRL-LG-style hybrid** — use the LLM as a *news encoder* feeding the GBM, not as the numeric
-   predictor. Matches our converged conclusion (the LLM's edge is text) with a published recipe.
-Both still live under the input ceiling, but both use the LLM *for what it's actually good at*.
+| Paper | Venue / id | Relevance |
+|---|---|---|
+| Can GRPO Transcend Pretraining Origin? | [2510.15990](https://arxiv.org/pdf/2510.15990) | theory: RL can't break input/pretraining ceiling |
+| PRPO (numerical reasoning, tabular) | [2510.17385](https://arxiv.org/abs/2510.17385) | close LLM↔GBDT gap; permutation aug + 2-level advantage |
+| NOVER (verifier-free RL) | EMNLP 2025 · [code](https://github.com/thinkwee/nover) | sidestep our noisy verifier |
+| Imperfect Verifier / Noisy Rewards | [2604.07666](https://arxiv.org/pdf/2604.07666) | robust RL at weak/noisy verifier |
+| Noise-corrected GRPO | [2510.18924](https://arxiv.org/abs/2510.18924) | unbiased gradient under reward noise |
+| VRPO | [2508.03058](https://arxiv.org/abs/2508.03058) | value model fixes weak-signal GRPO collapse |
+| Profit Mirage (leakage) | [2510.07920](https://arxiv.org/pdf/2510.07920) | pretraining-contamination risk |
+| SCRL-LG (LLM news encoder) | [2310.05627](https://arxiv.org/abs/2310.05627) | hybrid: LLM=text, model=predict |
+| FLAG-Trader | ACL 2025 Findings (Trading-R1 group) | precedent for LLM-as-policy + RL |
+| GBDT vs LLM few-shot | [2411.04324](https://arxiv.org/abs/2411.04324) | crossover ~8 shots; GBDT wins at scale |
+| TS foundation pretraining | [2507.07296](https://arxiv.org/abs/2507.07296) | 3–10× less data |
+| FinSeer (RAG) | [2502.05878](https://arxiv.org/abs/2502.05878) | retrieval for small-data stock movement |
+| HERO / Curriculum-RLVR / RLBFF | ICLR 2026 | sparse→dense reward design |
