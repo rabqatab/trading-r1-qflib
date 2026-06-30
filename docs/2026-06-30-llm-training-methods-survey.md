@@ -128,3 +128,45 @@ such contamination** (trained only on our pre-2024 data), so it is the *cleaner*
 pretraining/input); (2) use the *Imperfect-Verifier* noise model for our weak reward; (3) audit
 **pretraining contamination** — our LLM IC may be partly recall, making the honest LLM signal even
 weaker and the GBM the more trustworthy predictor.
+
+---
+
+## Published / peer-reviewed work (third pass, venue-filtered via LexiconArxiv)
+
+Centering on *published* (not preprint) methods. Three give concrete new directions:
+
+### P1 — NOVER: verifier-free RL (EMNLP 2025, tier-0; [code](https://github.com/thinkwee/nover)) ⭐ sidesteps our broken verifier
+`DOI 10.18653/v1/2025.emnlp-main.378`. Incentive-training RL that needs **only standard SFT data,
+no external verifier** — computes the reward from the answer itself, beating same-size R1-671B
+distillation by 7.7 %. **Why it matters for us:** our whole reward-gate failure stems from a
+*noisy external verifier* (the matrix/label reward). NOVER says: don't fight the noisy verifier —
+go verifier-free. A concrete, code-backed alternative to GRPO-on-a-noisy-reward; also enables
+"inverse incentive training." High-value to try.
+
+### P2 — SCRL-LG: LLM as news-feature encoder + RL alignment ([arXiv 2310.05627](https://arxiv.org/abs/2310.05627)) — the published version of our hybrid
+The LLM is a **news-headline feature extractor**, not the decision-maker; its embeddings are
+aligned with stock features in a shared space, and an RL/Local-Global model predicts. Validated on
+China A-share. **This is exactly the hybrid our analysis converged on** (LLM reads text — its real
+edge; a tabular model predicts). Published precedent that the LLM's value-add is *news encoding*,
+not numeric decision-making.
+
+### P3 — FLAG-Trader (ACL 2025 Findings, tier-1) — published precedent for *our* LLM-as-policy approach
+`DOI 10.18653/v1/2025.findings-acl.716`, **same author group as Trading-R1** (Xie/Huang/Liu). A
+partially-PEFT-fine-tuned LLM **is** the RL policy network, trained by policy gradient on trading
+rewards. Confirms our SFT→GRPO design is a legitimate, publishable approach — but note it makes no
+claim to beat a signal ceiling; it is about agentic multi-step decisions.
+
+### Also noted (reward design for our weak/sparse signal)
+- **Hybrid Reinforcement / HERO** (ICLR 2026): integrate a verifier signal *with* reward-model
+  scores to densify sparse reward.
+- **Curriculum RL, easy→hard** (ICLR 2026): curriculum RLVR improves reasoning under weak signal.
+- **RLBFF** (ICLR 2026): binary flexible feedback bridging RLHF and RLVR.
+- Context benchmarks: **FinanceReasoning**, **FLaME** (ACL 2025).
+
+### Updated recommendation
+Two genuinely new, published directions beyond "PRPO to approach the ceiling":
+1. **NOVER (verifier-free RL)** — stop optimizing the noisy matrix/label reward that fails the
+   gate; train verifier-free from the SFT data. Code exists.
+2. **SCRL-LG-style hybrid** — use the LLM as a *news encoder* feeding the GBM, not as the numeric
+   predictor. Matches our converged conclusion (the LLM's edge is text) with a published recipe.
+Both still live under the input ceiling, but both use the LLM *for what it's actually good at*.
