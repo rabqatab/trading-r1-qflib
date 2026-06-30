@@ -147,17 +147,21 @@ context-richness levers) are in the [memo](docs/2026-06-21-three-way-comparison-
    *long-bias dividend* of a rising market — in the flat 2025-H1 slice every LLM loses,
    and graded loses −4.3 % *despite a higher IC there*. Judge skill by IC and by net-of-
    baseline returns across regimes, not raw bull Sharpe.
-2. **There is a signal ceiling at ~0.24 IC** on price/technical data (every working LLM
-   0.13–0.19; a strong GBM tops out at 0.24). **Four independent checks say the limit is the
-   *input*, not the model** — so it's a real ceiling, not a fixable bug:
-   - **(a) no overfit:** each model's *in-sample* IC ≈ its *out-of-sample* IC. The model
-     can't beat 0.2 even on data it trained on → the signal isn't there to extract.
-   - **(b) feature-invariant:** 3× more features + cross-sectional rank-of-everything +
-     a market-neutral target all stay ~0.23.
-   - **(c) ensemble-null:** an LLM⊕GBM blend (they correlate 0.62) doesn't beat the GBM
-     alone — the LLM adds nothing *orthogonal*.
-   - **(d) oracle:** feed the backtest the *true* labels and it prints MDD 2.73 % (= the
-     paper's) — so the drawdown gap is a *prediction* limit, not a sizing one.
+2. **There is a ~0.24 IC ceiling on the *tabular / quantified* input** (price + technical
+   indicators + crude news *counts*) — i.e. the limit of what a strong **GBM** can extract.
+   Four independent checks say *that* limit is the input, not the model: **(a) no overfit** —
+   in-sample IC ≈ out-of-sample IC (can't beat 0.2 even on training data); **(b)
+   feature-invariant** — 3× more features + cross-sectional + market-neutral target stay
+   ~0.23; **(c) ensemble-null** — an LLM⊕GBM blend (corr 0.62) doesn't beat the GBM alone;
+   **(d) oracle** — perfect labels print MDD 2.73 % (= the paper), so the drawdown gap is a
+   *prediction* limit, not sizing.
+   > **Scope caveat (important).** This ceiling is on *quantified* inputs. It does **not**
+   > bound the paper's actual lever — an **LLM reasoning over raw news *text* + technicals**
+   > (the paper cats them into a 15–23k-token prompt; a GBM can't read text and counts throw
+   > the content away). Our multimodal LLM runs *did* include raw headlines but at ~1/10 the
+   > paper's prompt size (~900–2k tok) with tiny, collapsing training sets — so the news-text
+   > lever was **never fairly tested at scale**. A full-scale text reproduction is the open
+   > question (in progress).
 3. **The cap is horizon- and cost-bound, not model-bound.** Shortening the label horizon
    to 2–5 d lifts achievable IC to 0.33, but the faster rebalancing it needs gives the
    gain back to transaction costs — net Sharpe peaks at the current 3/7/15-d weekly.
@@ -172,9 +176,11 @@ context-richness levers) are in the [memo](docs/2026-06-21-three-way-comparison-
    oracle's prediction limit in 2d, not sizing).
 
 **Net:** the simplest defensible model (SFT v1) is the most defensive; graded-reward GRPO
-gives the best bull-window return; a non-LLM GBM is the best actual predictor. The binding
-constraint is the input's predictive content (IC ~0.24) and transaction cost — not reward
-shape, RL depth, model size, or hardware.
+gives the best bull-window return; a non-LLM GBM is the best *tabular* predictor. The binding
+constraint for *quantified* inputs is their predictive content (IC ~0.24) and transaction
+cost — not reward shape, RL depth, model size, or hardware. **The one input lever not yet
+fairly tested is the paper's: an LLM reasoning over full-scale raw news *text*** (see the
+scope caveat above) — that reproduction is the current work.
 
 ## Reproduce a model's evaluation
 
