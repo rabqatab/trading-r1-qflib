@@ -143,10 +143,15 @@ context-richness levers) are in the [memo](docs/2026-06-21-three-way-comparison-
 
 ## What we learned (honest findings)
 
-1. **Prediction ≠ profit.** The bull-window Sharpes (incl. graded's 0.93) are largely a
-   *long-bias dividend* of a rising market — in the flat 2025-H1 slice every LLM loses,
-   and graded loses −4.3 % *despite a higher IC there*. Judge skill by IC and by net-of-
-   baseline returns across regimes, not raw bull Sharpe.
+1. **Prediction ≠ profit — and "reward optimized" was overclaimed.** The bull-window Sharpes
+   (incl. graded's 0.93) are largely a *long-bias dividend* of a rising market — in the flat
+   2025-H1 slice every LLM loses, and graded loses −4.3 % *despite a higher IC there*. And
+   (Jiwoong's reward audit, [`docs/2026-06-30-jiwoong-reward-rebuttal.md`](docs/2026-06-30-jiwoong-reward-rebuttal.md))
+   even the *reward* wasn't cleanly optimized: under the original 5×5 decision matrix the
+   models' **mean reward stays negative and below a constant-policy baseline** (e.g. graded
+   −0.28 vs best-const −0.06). So a positive IC/Sharpe ≠ "the model mastered the reward."
+   Judge skill by IC, by mean-reward-vs-baseline, and by net-of-baseline returns across
+   regimes — not raw bull Sharpe.
 2. **There is a ~0.24 IC ceiling on the *tabular / quantified* input** (price + technical
    indicators + crude news *counts*) — i.e. the limit of what a strong **GBM** can extract.
    Four independent checks say *that* limit is the input, not the model: **(a) no overfit** —
