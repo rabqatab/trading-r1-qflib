@@ -84,3 +84,40 @@ that's orthogonal to PRPO.
    the GBM is the floor, not the goal.
 
 Bottom line: these lift the LLM to the ceiling, not past it. The break is still input/data.
+
+---
+
+## 2026 follow-up search — theory confirms the ceiling + a new leakage risk
+
+A second pass for **2026** papers (arXiv 26xx) surfaced three that change our thinking:
+
+### A. "Can GRPO Help LLMs Transcend Their Pretraining Origin?" ([2510.15990](https://arxiv.org/pdf/2510.15990)) — theory behind our ceiling
+Finding: **GRPO reweights/sharpens capabilities already latent in the pretrained model; it does
+not create new ones.** Where the base model's signal on the inputs is weak, **RL cannot
+compensate — it cannot transcend the ceiling set by pretraining/input.** This is the *theoretical
+explanation* for our empirical wall: our GRPO never broke IC ~0.24 because RL amplifies latent
+signal, and the signal isn't in the input. Reinforces: the lever is **input/data, not more RL**.
+
+### B. "An Imperfect Verifier is Good Enough" ([2604.07666](https://arxiv.org/pdf/2604.07666)) — best fit for *our* reward
+2026, more adaptive than 2025's noise-corrected GRPO: estimate per-verifier FPR/FNR, **adaptively
+down-weight high-uncertainty examples**, iteratively refine noise estimates. Robust at **30–50 %
+error and weak-signal (verifier barely better than random)** — which is *exactly* our regime
+(IC ~0.19 label = a barely-better-than-random "verifier"). This is the method to use for our
+noisy label/reward, ahead of the 2025 variant.
+
+### C. ⚠️ NEW RISK — pretraining contamination ("Profit Mirage", [2510.07920](https://arxiv.org/pdf/2510.07920))
+LLM financial agents leak via lookahead, event memorization, **and pretraining contamination** —
+and reported returns are "dramatically inflated" vs leak-free. **This applies to us:** our OOS
+window (2024-01→2026) overlaps Qwen3-4B-Instruct-**2507**'s pretraining (cutoff ~mid-2025), so the
+LLM may *recall* 2024–2025 outcomes rather than predict them — inflating its IC. The **GBM has no
+such contamination** (trained only on our pre-2024 data), so it is the *cleaner* signal — our
+"GBM > LLM" gap may even understate the LLM's true-predictive deficit.
+- **Testable check (cheap, do next):** split the LLM's IC into **pre-cutoff (≤2025-07, possibly
+  memorized)** vs **post-cutoff (2025-08→2026, definitely not)**. If IC drops post-cutoff →
+  contamination inflated the earlier number. (Consistent hint already: the LLM *loses* in the
+  post-cutoff 2025-H2 fresh window.) Only the GBM and the post-cutoff slice are contamination-safe.
+
+**Net of the 2026 pass:** (1) the ceiling is now *theoretically* expected (RL can't transcend
+pretraining/input); (2) use the *Imperfect-Verifier* noise model for our weak reward; (3) audit
+**pretraining contamination** — our LLM IC may be partly recall, making the honest LLM signal even
+weaker and the GBM the more trustworthy predictor.
