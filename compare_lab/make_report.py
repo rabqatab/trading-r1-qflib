@@ -83,6 +83,7 @@ def _ic_rows():
             "lo": lo, "hi": hi, "p": p, "stars": _stars(p),
             "sr": r["backtest"]["SR"] if r["backtest"] else float("nan"),
             "dist": r["dist"], "top": max(r["dist"].values()),
+            "reward": r["matrix_reward"], "best_const": r["best_const"],
         })
     rows.sort(key=lambda x: -x["ic"])
     return rows
@@ -204,13 +205,16 @@ def build_html() -> str:
     # ---- IC results
     H.append("<h2>2. Label-fidelity (IC) per model</h2>")
     H.append(_t(ic,
-        ["model", "IC", "tail-IC", "n", "95% CI", "p", "sig.", "backtest SR", "top class %"],
+        ["model", "IC", "tail-IC", "n", "sig.", "backtest SR",
+         "matrix reward", "reward gate", "top class %"],
         lambda r: [r["label"],
                    f"{r['ic']:+.3f}", f"{r['tail']:+.3f}", r["n"],
-                   f"[{r['lo']:+.2f}, {r['hi']:+.2f}]", f"{r['p']:.1e}",
                    f"<b>{r['stars']}</b>",
                    ("<span class='%s'>%+.2f</span>" % ("good" if r["sr"] > 0 else "bad", r["sr"]))
                    if r["sr"] == r["sr"] else "—",
+                   f"{r['reward']:+.3f} <span class='mut'>(vs {r['best_const']:+.2f})</span>",
+                   ("<span class='good'>✅ PASS</span>" if r["reward"] > r["best_const"]
+                    else "<span class='bad'>❌ FAIL</span>"),
                    f"{r['top']*100:.0f}%"]))
     H.append("<div class='box'><b>How to read significance / IC.</b> "
              "Stars = how unlikely the result is to be chance: "
@@ -220,6 +224,13 @@ def build_html() -> str:
              "&lt;0.05 negligible · 0.05–0.10 weak · <b>0.10–0.20 modest</b> · "
              "0.20–0.30 decent · &gt;0.30 strong. Every working model sits in the "
              "weak-to-modest band; only the all-SELL model is <code>ns</code> (chance).</div>")
+    H.append("<div class='box warn'><b>Reward gate (Jiwoong rebuttal, "
+             "<code>docs/2026-06-30-jiwoong-reward-rebuttal.md</code>).</b> Positive IC ≠ "
+             "&ldquo;the reward was optimized.&rdquo; A model only <em>beats the reward</em> "
+             "if its mean 5×5 decision-matrix reward exceeds the best constant-policy baseline. "
+             "<b>Every trained model FAILS this gate</b> (mean reward below best-const) — so "
+             "they have weak directional signal, <b>not</b> demonstrated reward mastery. Report "
+             "bull-window Sharpe and reward-gate status side by side, never Sharpe alone.</div>")
     H.append("<div class='box warn'><b>Caveat.</b> Forward windows overlap (15-day "
              "horizon, decisions every few days), so observations are not independent — "
              "effective n is roughly a third of nominal. Full-window models (n≈1500) "

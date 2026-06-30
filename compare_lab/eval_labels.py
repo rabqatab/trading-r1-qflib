@@ -146,6 +146,15 @@ def _report(name: str, r: dict) -> None:
     print(f"     side views: acc={r['acc']*100:.1f}%  ordinal_MAE={r['ordinal_mae']:.2f}"
           f"  | training-reward(§5.2 matrix)={r['matrix_reward']:+.3f}"
           f" (best-const {r['best_const']:+.3f})  monotone={r['monotone']}")
+    # Reward gate (Jiwoong rebuttal §7.1): "reward worked" requires mean matrix
+    # reward to beat the best constant-policy baseline. Positive IC alone ≠ reward
+    # success — a model below best-const has only weak directional signal.
+    if r["matrix_reward"] > r["best_const"]:
+        print(f"     ✅ REWARD GATE PASS: matrix reward {r['matrix_reward']:+.3f}"
+              f" > best-const {r['best_const']:+.3f} (reward genuinely beaten)")
+    else:
+        print(f"     ❌ REWARD GATE FAIL: matrix reward {r['matrix_reward']:+.3f}"
+              f" ≤ best-const {r['best_const']:+.3f} → weak signal only, NOT reward success")
     print("     mean realized signal by predicted class (want ↑ SS→SB):")
     print("    ", {c: (None if pd.isna(v) else round(v, 3))
                    for c, v in r["by_class_signal"].items()})
