@@ -147,9 +147,17 @@ context-richness levers) are in the [memo](docs/2026-06-21-three-way-comparison-
    *long-bias dividend* of a rising market — in the flat 2025-H1 slice every LLM loses,
    and graded loses −4.3 % *despite a higher IC there*. Judge skill by IC and by net-of-
    baseline returns across regimes, not raw bull Sharpe.
-2. **There is a signal ceiling, and it's ~0.24 IC** on price/technical data. Every working
-   LLM sits at 0.13–0.19; a strong GBM tops out at 0.24. More features / cross-sectional
-   framing / a bigger teacher do **not** move it — IC is *input-bound*.
+2. **There is a signal ceiling at ~0.24 IC** on price/technical data (every working LLM
+   0.13–0.19; a strong GBM tops out at 0.24). **Four independent checks say the limit is the
+   *input*, not the model** — so it's a real ceiling, not a fixable bug:
+   - **(a) no overfit:** each model's *in-sample* IC ≈ its *out-of-sample* IC. The model
+     can't beat 0.2 even on data it trained on → the signal isn't there to extract.
+   - **(b) feature-invariant:** 3× more features + cross-sectional rank-of-everything +
+     a market-neutral target all stay ~0.23.
+   - **(c) ensemble-null:** an LLM⊕GBM blend (they correlate 0.62) doesn't beat the GBM
+     alone — the LLM adds nothing *orthogonal*.
+   - **(d) oracle:** feed the backtest the *true* labels and it prints MDD 2.73 % (= the
+     paper's) — so the drawdown gap is a *prediction* limit, not a sizing one.
 3. **The cap is horizon- and cost-bound, not model-bound.** Shortening the label horizon
    to 2–5 d lifts achievable IC to 0.33, but the faster rebalancing it needs gives the
    gain back to transaction costs — net Sharpe peaks at the current 3/7/15-d weekly.
@@ -157,11 +165,11 @@ context-richness levers) are in the [memo](docs/2026-06-21-three-way-comparison-
    wrong tool (it under-uses precise numerics); GBM IC 0.24 / net SR 1.14 > every trained LLM.
 5. **The multimodal signal was news-driven.** It looked like an orthogonal regime-hedge
    (CV IC ~0.12, positive in 2025-H1) but a news-less walk-forward on fresh 2025-H2→2026
-   data scores ~0.02 — and `news.parquet` is the one stale feed (ends 2025-06). A real
-   multimodal push needs a fresh news pull (external API).
+   data scores ~0.02 — and `news.parquet` is the one stale feed (ends 2025-06). Reviving it
+   is **free** (extend `crawl_news.py`'s `MONTHS` range and re-run — Google-News-RSS, no key).
 6. **vs the paper:** on its own window our best GRPO matches Sharpe (1.51 vs 1.57) but the
-   **drawdown is 2× worse** (5.5 % vs 2.8 %) — the real gap is risk/regime control, which
-   an oracle check shows is a *prediction* limit, not a sizing one.
+   **drawdown is 2× worse** (5.5 % vs 2.8 %) — the real gap is risk/regime control (= the
+   oracle's prediction limit in 2d, not sizing).
 
 **Net:** the simplest defensible model (SFT v1) is the most defensive; graded-reward GRPO
 gives the best bull-window return; a non-LLM GBM is the best actual predictor. The binding
