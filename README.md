@@ -158,10 +158,14 @@ context-richness levers) are in the [memo](docs/2026-06-21-three-way-comparison-
    > **Scope caveat (important).** This ceiling is on *quantified* inputs. It does **not**
    > bound the paper's actual lever — an **LLM reasoning over raw news *text* + technicals**
    > (the paper cats them into a 15–23k-token prompt; a GBM can't read text and counts throw
-   > the content away). Our multimodal LLM runs *did* include raw headlines but at ~1/10 the
-   > paper's prompt size (~900–2k tok) with tiny, collapsing training sets — so the news-text
-   > lever was **never fairly tested at scale**. A full-scale text reproduction is the open
-   > question (in progress).
+   > the content away). **Tested as far as our data allows** (`MM_RICH`: every headline in a
+   > 60d window, 60–250 per prompt, ~3–8k tok — the max headline-only data permits): the
+   > rich-text prompt-only IC is **0.187 — still *below* price-only's 0.221** (zero-shot LLM
+   > gets *distracted* by more text, not helped). Our prior *trained* multimodal also landed
+   > ~0.19. So at our scale the news-text lever does **not** break the ceiling. The one thing
+   > we genuinely can't test is the paper's full **article bodies** at 15–23k tok — our news
+   > is **headlines-only** (Google-RSS); that, and a far larger universe, are the only
+   > untested differences left.
 3. **The cap is horizon- and cost-bound, not model-bound.** Shortening the label horizon
    to 2–5 d lifts achievable IC to 0.33, but the faster rebalancing it needs gives the
    gain back to transaction costs — net Sharpe peaks at the current 3/7/15-d weekly.
