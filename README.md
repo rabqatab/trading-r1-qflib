@@ -174,8 +174,15 @@ context-richness levers) are in the [memo](docs/2026-06-21-three-way-comparison-
 3. **The cap is horizon- and cost-bound, not model-bound.** Shortening the label horizon
    to 2–5 d lifts achievable IC to 0.33, but the faster rebalancing it needs gives the
    gain back to transaction costs — net Sharpe peaks at the current 3/7/15-d weekly.
-4. **A plain GBM beats every LLM here.** On tabular technical prediction the LLM is the
-   wrong tool (it under-uses precise numerics); GBM IC 0.24 / net SR 1.14 > every trained LLM.
+4. **A plain GBM beats every LLM here** (on tabular technical prediction the LLM under-uses
+   precise numerics; GBM IC 0.24 / net SR 1.14 > every trained LLM). **But the GBM is only a
+   valid proxy for the *input ceiling*, not for the LLM** — rigorously tested
+   ([`docs/2026-06-30-gbm-llm-proxy-validity.md`](docs/2026-06-30-gbm-llm-proxy-validity.md)):
+   GBM IC ≥ every LLM IC ✅ (so "input caps at 0.24" is a fair GBM claim), but it overestimates
+   each LLM's IC (gap varies 3×), agrees with LLM decisions only ~30 %, and is right on 16–26 %
+   of rows the LLM gets wrong — i.e. an *independent* model. So a GBM learning curve bounds the
+   *signal*, **not the LLM's data-response** — that needs the LLM trained at several sizes.
+   (RL narrows the gap: SFT extracts ~60 % of the ceiling, GRPO ~88 %.)
 5. **The multimodal signal was news-driven.** It looked like an orthogonal regime-hedge
    (CV IC ~0.12, positive in 2025-H1) but a news-less walk-forward on fresh 2025-H2→2026
    data scores ~0.02 — and `news.parquet` is the one stale feed (ends 2025-06). Reviving it
