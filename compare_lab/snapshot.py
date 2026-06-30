@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from hashlib import sha1
 
+import os
 import pandas as pd
 from stockstats import StockDataFrame
 
@@ -47,6 +48,9 @@ class MarketSnapshotBuilder:
         # optional MultiModalStore: when set, build() appends PIT-filtered
         # news/fundamentals/sentiment/macro sections (paper-parity input).
         self._multimodal = multimodal
+        # MM_RICH=1 → dump every headline in a 60d window (paper-faithful raw text,
+        # ~3-8k tok) instead of the bucketed ≤50 view.
+        self._mm_rich = os.environ.get("MM_RICH") == "1"
 
     def _window(self, ticker: str, as_of) -> pd.DataFrame:
         as_of = pd.Timestamp(as_of)
@@ -89,7 +93,8 @@ class MarketSnapshotBuilder:
             lines.append(f"  {ind}: {_abbrev(last.get(ind, float('nan')))}")
         if self._multimodal is not None:
             lines.append("")
-            lines.append(self._multimodal.render_sections(ticker, as_of))
+            lines.append(self._multimodal.render_sections(
+                ticker, as_of, rich=self._mm_rich))
         return "\n".join(lines)
 
     def snapshot_hash(self, ticker: str, as_of) -> str:

@@ -96,14 +96,23 @@ class MultiModalStore:
     # paper Table S1: 3 time buckets, capped per bucket, for a spread-out view.
     _NEWS_BUCKETS = (("≤3d", 0, 3, 10), ("4-10d", 4, 10, 20), ("11-30d", 11, 30, 20))
 
-    def render_sections(self, ticker: str, as_of, *, max_events: int = 12) -> str:
+    def render_sections(self, ticker: str, as_of, *, max_events: int = 12,
+                        rich: bool = False) -> str:
         as_of = pd.Timestamp(as_of)
         out: list[str] = []
 
-        news = self.news(ticker, as_of)
-        out.append("=== NEWS (last 30d) ===")
+        # rich = paper-faithful "dump the raw text": every headline in a 60d window,
+        # uncapped. Default = the bucketed ≤50 view. (Our news is headlines-only —
+        # no article bodies — so this is the densest text input the data allows.)
+        lookback = 60 if rich else 30
+        news = self.news(ticker, as_of, lookback_days=lookback)
+        out.append(f"=== NEWS (last {lookback}d) ===")
         if news.empty:
             out.append("  none")
+        elif rich:
+            for _, r in news.sort_values("published_at", ascending=False).iterrows():
+                out.append(f"  {r['published_at'].date()} | {r['headline']} "
+                           f"({r['source']})")
         else:
             age = (as_of - news["published_at"]).dt.days
             for tag, lo, hi, cap in self._NEWS_BUCKETS:
