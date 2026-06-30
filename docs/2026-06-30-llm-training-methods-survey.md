@@ -112,10 +112,17 @@ window (2024-01→2026) overlaps Qwen3-4B-Instruct-**2507**'s pretraining (cutof
 LLM may *recall* 2024–2025 outcomes rather than predict them — inflating its IC. The **GBM has no
 such contamination** (trained only on our pre-2024 data), so it is the *cleaner* signal — our
 "GBM > LLM" gap may even understate the LLM's true-predictive deficit.
-- **Testable check (cheap, do next):** split the LLM's IC into **pre-cutoff (≤2025-07, possibly
-  memorized)** vs **post-cutoff (2025-08→2026, definitely not)**. If IC drops post-cutoff →
-  contamination inflated the earlier number. (Consistent hint already: the LLM *loses* in the
-  post-cutoff 2025-H2 fresh window.) Only the GBM and the post-cutoff slice are contamination-safe.
+- **Tested (2026-06-30), GBM as the contamination-free control:** split IC at CUT=2025-08-01.
+  - **graded GRPO:** LLM IC 0.203→0.150 (drop +0.053) while the **GBM control held 0.201→0.210**
+    (post-cutoff is *not* harder) → **excess LLM drop +0.062 ⇒ contamination suspected** (recall
+    inflated the pre-cutoff IC). Strikingly consistent with "GRPO amplifies *pretrained* ability"
+    (A): RL sharpened the base's 2024–25 *memory*, which evaporates post-cutoff.
+  - **SFT v1:** 0.126→0.124 (no excess) → contamination-clean; its 0.13 is trustworthy.
+  - Caveat: post n≈430 (~1.3 SE) → *suggestive, not conclusive*; firm up on the post-cutoff
+    fresh window once the universe expands.
+  - **Implication:** graded's *honest* IC is nearer its post-cutoff **0.15** than 0.19 → the
+    LLM-vs-GBM gap is *wider* than it looked, and the GBM (0.21, cutoff-stable) is the cleanest
+    predictor. Report LLM IC on the post-cutoff slice to be contamination-safe.
 
 **Net of the 2026 pass:** (1) the ceiling is now *theoretically* expected (RL can't transcend
 pretraining/input); (2) use the *Imperfect-Verifier* noise model for our weak reward; (3) audit
