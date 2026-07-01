@@ -36,6 +36,9 @@ def main() -> int:
                          "(fixes the v0 HOLD-collapse from full-sequence loss)")
     ap.add_argument("--smoke", action="store_true",
                     help="tiny subset + 3 steps to verify GB10 compatibility")
+    ap.add_argument("--batch", type=int, default=2, help="per-device batch")
+    ap.add_argument("--grad-accum", type=int, default=8,
+                    help="grad accumulation (eff batch = batch * grad_accum)")
     args = ap.parse_args()
 
     import torch
@@ -54,8 +57,16 @@ def main() -> int:
         ds["val"] = ds["val"].select(range(min(16, len(ds["val"]))))
 
     tok = AutoTokenizer.from_pretrained(MODEL)
+    # flash-attn 2 is a large speedup on the long (~2.5k-tok) multimodal prompts;
+    # fall back to sdpa if the wheel is absent (e.g. outside the NVIDIA container).
+    try:
+        import flash_attn  # noqa: F401
+        _attn = "flash_attention_2"
+    except ImportError:
+        _attn = "sdpa"
     model = AutoModelForCausalLM.from_pretrained(
-        MODEL, torch_dtype=torch.bfloat16, device_map="cuda")
+        MODEL, torch_dtype=torch.bfloat16, device_map="cuda",
+        attn_implementation=_attn)
 
     peft_cfg = LoraConfig(
         r=16, lora_alpha=32, lora_dropout=args.lora_dropout, bias="none",
@@ -66,8 +77,8 @@ def main() -> int:
 
     cfg = SFTConfig(
         output_dir=args.out,
-        per_device_train_batch_size=2,
-        gradient_accumulation_steps=8,
+        per_device_train_batch_size=args.batch,
+        gradient_accumulation_steps=args.grad_accum,
         num_train_epochs=args.epochs,
         max_steps=3 if args.smoke else -1,
         learning_rate=LR,

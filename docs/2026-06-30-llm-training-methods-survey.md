@@ -98,7 +98,15 @@ both ours to reuse:
   policy gradient on trading rewards. Confirms our SFT→GRPO design is legitimate/publishable — but
   makes no signal-ceiling-breaking claim.
 
-## 5. Recommended priority (when the expanded universe arrives)
+## 5. Recommended priority (expanded universe ARRIVED 2026-07-01)
+
+> **Status:** the top-150 universe landed 2026-07-01. Before the methods below, we are
+> first drawing the **real LLM data-scale learning curve** (267/1k/3k template-SFT) and
+> re-testing the **multimodal ceiling** at 150 equities — see
+> [`2026-07-01-top150-learning-curve-experiment.md`](2026-07-01-top150-learning-curve-experiment.md).
+> That baseline decides which lever below is worth pulling: a below-ceiling plateau ⇒
+> distillation / verifier-free reward (A/B); a collapse-repair-only gain ⇒ VRPO (C).
+
 
 1. **Hybrid (SCRL-LG-style):** LLM news-encoder → embeddings/features → GBM predictor. Plays each
    tool to its strength; addresses bottleneck A by not fighting the LLM-on-tabular battle.
