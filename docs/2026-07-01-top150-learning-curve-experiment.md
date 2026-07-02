@@ -103,10 +103,25 @@ required or PEFT LoRA loading raises an incompatible-torchao ImportError.
 full **3,047** does it (a) stop collapsing and (b) produce a genuine OOS IC of **0.163**.
 This is a *real* LLM data-scale curve — it directly corrects the earlier (invalid)
 GBM-proxy claim that "10× data is useless." Data scale both **repairs collapse** and
-**lifts IC**. But 0.163 sits **below the ~0.24 tabular ceiling** (established on the prior
-universe; a same-universe GBM ceiling is a TODO) → the templated rationale **under-extracts**
-(survey bottleneck A). Levers to close the residual: distillation (SFT v2) and a stronger
-verifier reward — *not* more data (3k already clears the collapse regime).
+**lifts IC**.
+
+### Same-universe GBM ceiling (how far is 0.163 from achievable?)
+`compare_lab/gbm_ceiling.py` — a **valid** GBM use (input-ceiling, not LLM proxy): the same
+16 technical indicators the LLM sees, GBM trained on **2024** (36,420 rows), predicting the
+**exact same 1,000 2025-H1 eval points**, IC vs the same forward `make_signal`. Leak-safe
+(causal features, no train/test overlap, forward signal is target-only).
+
+| predictor | IC on the 1,000 OOS points |
+|--|--:|
+| GBM continuous (input ceiling) | **+0.215** |
+| GBM 5-class-bucketed (LLM-fair coarseness) | +0.206 |
+| **LLM template-SFT 3,047** | **+0.163** |
+
+So the ~0.24 ceiling **holds at 150 tickers on fresh 2025-OOS** (GBM 0.215 — input-bound,
+universe/period-robust), and the template-SFT LLM captures **76 % of the continuous / 79 %
+of the 5-class ceiling**. The residual **0.05 IC gap is real under-extraction** (now
+quantified, not asserted) → the levers are distillation (SFT v2) and a stronger verifier
+reward (survey bottleneck A/B), **not** more data (3k already clears the collapse regime).
 
 ### #2 Multimodal ceiling (+news/fund/sent/macro vs price-only, same OOS)
 | model | full-MM IC | price-only IC | verdict |
