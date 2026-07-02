@@ -89,21 +89,38 @@ passes). Measured throughput ≈ 0.21 samples/s (267: 46 min, 1000: 2 h21 m, 304
 Container gotcha (documented in `sft/README.md`): `pip uninstall -y torchao` is
 required or PEFT LoRA loading raises an incompatible-torchao ImportError.
 
-## Results — PENDING
+## Results (2026-07-02)
 
-### #1 Learning curve (all on full-MM eval, 2025-H1 OOS, n≈1000)
-| SFT examples | IC | ±SE | invalid % | class dist | note |
-|--:|--:|--:|--:|--|--|
-| 0 (base) | _pending_ | | | | |
-| 267 | _pending_ | | | | |
-| 1,000 | _pending_ | | | | |
-| 3,047 | _pending_ | | | | |
+### #1 Learning curve (full-MM eval, 2025-H1 OOS, n=1000, SE≈0.032)
+| SFT examples | IC | class dist (of 1000) | read |
+|--:|--:|--|--|
+| 0 (base) | _base rerun in progress_ ¹ | — | base writes essays, needs max_new≥1024 |
+| 267 | **+0.013** | SELL **899** / STRONG_* 66 / HOLD 35 | **mode-collapse to SELL** → ~zero signal |
+| 1,000 | **−0.022** | STRONG_* 499 / SELL 377 / BUY 124 | still skewed (barbell) → ~zero signal |
+| 3,047 | **+0.163** | SELL 297 / HOLD 275 / BUY 269 / STRONG_* 159 | **balanced, no collapse, real signal (z≈5)** |
 
-### #2 Multimodal ceiling (base + best-SFT, +news vs price-only, same OOS)
-| model | full-MM IC | price-only IC | Δ | verdict |
-|--|--:|--:|--:|--|
-| base | _pending_ | _pending_ | | |
-| SFT-3047 | _pending_ | _pending_ (OOD caveat) | | |
+**Headline finding:** template-SFT is *collapse-bound* below ~1k examples and only at the
+full **3,047** does it (a) stop collapsing and (b) produce a genuine OOS IC of **0.163**.
+This is a *real* LLM data-scale curve — it directly corrects the earlier (invalid)
+GBM-proxy claim that "10× data is useless." Data scale both **repairs collapse** and
+**lifts IC**. But 0.163 sits **below the ~0.24 tabular ceiling** (established on the prior
+universe; a same-universe GBM ceiling is a TODO) → the templated rationale **under-extracts**
+(survey bottleneck A). Levers to close the residual: distillation (SFT v2) and a stronger
+verifier reward — *not* more data (3k already clears the collapse regime).
+
+### #2 Multimodal ceiling (+news/fund/sent/macro vs price-only, same OOS)
+| model | full-MM IC | price-only IC | verdict |
+|--|--:|--:|--|
+| base (prompt-only) | _base rerun in progress_ ¹ | _base rerun in progress_ ¹ | clean test = base mm vs px |
+| SFT-3047 | +0.163 | **nan — collapses to all-STRONG** ² | not a clean test (modality-mismatch OOD) |
+
+¹ The first run used `max_new=200`; the base model writes a ~2,000-char analysis before
+its `[[[CLASS]]]`, so all 1000 base rows were truncated-invalid. Re-running base mm+px at
+`max_new=1024` (6/6 tag-hit confirmed on a probe). Trained models were unaffected (they
+emit a short thesis+tag in <200 tok; 0 invalid).
+² Feeding the full-MM-trained model price-only prompts (missing the NEWS/FUND/SENT/MACRO
+sections it always saw) drives it out-of-distribution → degenerate all-STRONG. So the clean
+#2 must come from the **base** model (no training confound), not this ablation.
 
 ## How to read the result (guardrails set *before* seeing it)
 - **If IC rises with data then plateaus below ~0.24:** data-scale helps template-SFT up
