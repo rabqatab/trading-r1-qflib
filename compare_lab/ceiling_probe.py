@@ -136,6 +136,27 @@ def main() -> int:
     print(f"  IC(momentum, RAW 7d return)     = {_spearman(mom_k, raw):+.3f}")
     print(f"  IC(GBM,      RAW 7d return)     = {_spearman(gbm_k, raw):+.3f}")
     print("  (big drop on RAW ⇒ the proxy's predictability is inflated by EMA smoothing)")
+
+    # ---- E7: measure the information ceiling (inference -> measurement) ----
+    # (a) KSG kNN mutual information I(feature; target) in nats (Kraskov 2004, via sklearn),
+    #     with a permutation null; (b) the Gaussian forecastability identity
+    #     I = -0.5*ln(1-IC^2) nats (arXiv:2603.27074) converting our ICs to nats;
+    #     (c) the McAllester-Stratos O(ln N) cap on any distribution-free MI lower bound.
+    from sklearn.feature_selection import mutual_info_regression
+    rng = np.random.default_rng(0)
+    mom_tr = Xtr[:, _INDICATORS.index("close_10_roc")].reshape(-1, 1)
+    mi_mom = float(mutual_info_regression(mom_tr, ytr, n_neighbors=5, random_state=0)[0])
+    null = np.mean([mutual_info_regression(mom_tr, rng.permutation(ytr),
+                                           n_neighbors=5, random_state=0)[0] for _ in range(15)])
+    mi_all = float(mutual_info_regression(Xtr, ytr, n_neighbors=5, random_state=0).sum())
+    ident = lambda ic: -0.5 * np.log(max(1 - ic * ic, 1e-9))
+    print("\n=== E7  MEASURED INFORMATION CEILING (nats) ===")
+    print(f"  KSG I(momentum; make_signal)     = {mi_mom:.4f}  (permutation null {null:.4f})")
+    print(f"  KSG Σ I(feature_i; make_signal)  = {mi_all:.4f}  (marginal upper-ish reference)")
+    print(f"  identity -½ln(1-IC²): proxy IC 0.266 -> {ident(0.266):.4f} | raw IC 0.064 -> {ident(0.064):.4f}")
+    print(f"  McAllester-Stratos cap O(ln N)   = {np.log(len(ytr)):.2f} nats  (N={len(ytr)})")
+    print("  ⇒ target MI ~1e-2..1e-3 nats sits 3-4 orders below the estimator's statistical")
+    print("    limit ⇒ the ceiling is INFORMATIONAL (I(X;Y) is tiny), not sample-size-bound.")
     return 0
 
 

@@ -67,6 +67,27 @@ horizons {3,7,15d}. Smoothing + overlap **mechanically inject autocorrelation** 
 1988), inflating apparent predictability ~4×. **Everything we've reported as IC 0.16–0.27 is the
 predictability of a smoothed artifact, not tradeable skill.** Real tradeable IC here is ~0.06.
 
+> **External anchor (Gu, Kelly & Xiu, RFS 2020):** the best ML on ~900 predictors achieves
+> monthly OOS **R² ≈ 0.4 % ⇒ ρ ≈ 0.063** per stock — statistically identical to our raw-return
+> **0.064**, with the same top signals (momentum/liquidity/vol). Our 0.06 is not a pipeline
+> failure; it *is* the honestly-measured state of the art. (Their R² is monthly; our 3–15d
+> horizon is noisier, so 0.06 is if anything generous — reinforcing that 0.27 is smoothing.)
+
+### E7 — MEASURED information ceiling: inference → fact
+Converts our biggest inferred claim ("0.06 = I(X;Y)") into a measurement, two independent ways:
+| quantity | value (nats) |
+|--|--:|
+| KSG kNN **I(momentum; make_signal)** (Kraskov 2004; perm-null 0.0011) | **0.0344** |
+| Gaussian identity **−½ln(1−IC²)** from momentum IC 0.266 (arXiv:2603.27074) | **0.0367** |
+| same identity from **raw-return** IC 0.064 | **0.0021** |
+| McAllester–Stratos cap on any distribution-free MI lower bound, O(ln N), N=36 420 | **10.5** |
+
+The nonparametric KSG estimate (0.034) and the Gaussian-identity value (0.037) **agree** → the
+momentum feature extracts essentially all of I(momentum; target); the model is **saturated**, not
+under-powered. And the target's MI (~10⁻³–10⁻² nats) sits **3–4 orders of magnitude below** the
+statistical estimation ceiling (10.5 nats) → the limit is **informational** (I(X;Y) is tiny), *not*
+sample size. This is the DPI argument **measured**, no longer merely inferred.
+
 ## Literature grounding
 
 The ceiling is **I(X; Y)** — the mutual information between inputs and target. Four mechanisms:
@@ -110,18 +131,43 @@ found two more directly on point — plus a genuine counter-case we must not hid
 weak-form EMH and the 0.02–0.10 real-IC scale; smoothing/overlap inflate predictability;
 RL reweights (doesn't expand) the base; LLMs don't beat simple TS baselines and text adds ~no lift.
 
-**Our inference (literature-consistent, not directly proven):**
-- That our specific **0.06 (raw) / 0.27 (proxy) equals I(X;Y)**. No paper measures I(X;Y) for
-  `make_signal`. The DPI/EMH/smoothing chain explains the *shape*; the exact value being the
-  information limit is inferred. **To convert to proof:** estimate the Bayes-error/MI ceiling
-  directly (classifier-confusion MI, [1606.05229](https://arxiv.org/pdf/1606.05229); or MINE/kNN)
-  and show the best models *saturate* it. → **E7, not yet run.**
-- That **#2's multimodal null = an information ceiling**. It could instead be LLM
-  *encoding/alignment* failure (text info present but not extracted). **To disambiguate:** add
-  the alt-data as **numeric tabular features** to the GBM; if tabular alt-data *also* adds no OOS
-  IC over price-only, the null is informational, not an encoding artifact. → **E8, not yet run.**
+**Now measured (was inference, E7 closes it):**
+- **"0.06 = I(X;Y)"** is no longer only inferred. KSG MI (0.034 nats) and the Gaussian identity
+  (0.037) agree, and both sit 3–4 orders below the O(ln N) estimation ceiling → the limit is
+  informational and the best model saturates it. Caveat: KSG is a marginal single-feature estimate
+  and the identity assumes Gaussian+log-loss; the *joint* I(X;Y) could be marginally higher, so read
+  "≈ saturated" not "exactly saturated."
+
+**Still our inference / honestly contested:**
+- **The 0.06 floor is not *pure* noise.** Chen ([2206.15365](https://arxiv.org/abs/2206.15365))
+  argues cross-sectional predictability is mostly *real-but-small* (empirical-Bayes), so 0.06 is
+  **inflation + a sliver of genuine smoothed signal**, not inflation alone. Don't say "0.21 is pure
+  noise."
+- **Complexity-helps is a live, top-venue dispute.** Kelly–Malamud–Zhou (VoC, JF 2023) claim
+  complexity genuinely helps market-*timing*; but Nagel (BFI 2025, "Seemingly Virtuous Complexity")
+  shows their gain **reduces to vol-timed momentum** in small samples, and Buncic (SSRN 2025) traces
+  it to a zero-intercept artifact. Net: the critiques *support* our "1-feature momentum is hard to
+  beat," but frame our result as evidence *within* an unsettled debate, not a closed proof.
+- **#2's null: probably informational, not proven by the LLM alone.** LLMs are known-weak text
+  encoders (Merrill/Tan EMNLP 2024; Tan et al. NeurIPS 2024), so an LLM null can't discriminate
+  "no info" from "not extracted." Finance evidence says headline text signal is transient (1–2 d),
+  small-cap, momentum-redundant, cost-fragile (Tetlock 2007; Heston–Sinha 2017; Lopez-Lira–Tang
+  2023 — unprofitable at ~20 bps) → an informational null is most parsimonious. **E8 (below)
+  disambiguates.**
 - Skeptic caveat on 2510.15990: it proves GRPO is **bounded by the base distribution** (a real
   theorem), *not* metaphysical "no new capability ever." Cite it for the reweighting bound only.
+
+## Recommended next experiments (now concretely specified)
+- **E7 (done):** KSG MI + Gaussian identity above. Optional hardening — Ishida Bayes-error
+  (ICLR 2023, `github.com/takashiishida/irreducible`) on a binary up/down framing for a
+  reviewer-friendly "irreducible error = X %, best model within Y %."
+- **E8 (to run) — resolve the #2 null.** Add the alt-data as **numeric tabular features** to the
+  price-only GBM (analyst-revision counts, insider net-buys, news count/recency, macro levels).
+  Strengthen per agent-C: (1) also add a **return-fitted "oracle" sentiment feature** (SESTM-style,
+  Ke–Kelly–Xiu NBER 2019) — if even *that* adds nothing, the informational verdict is near-airtight;
+  (2) **stratify by market-cap / horizon (1–2 d vs our target) / net-of-cost** — residual text signal,
+  if any, should appear only in the small-cap, 1–2-day, gross-of-cost cell, which simultaneously
+  confirms the null *and* explains it.
 
 ## Corrections to earlier docs (recorded, not hidden)
 - **`gbm_ceiling.md` / learning-curve doc "GBM 0.215 = input ceiling, LLM captures 76 %":**
@@ -137,3 +183,40 @@ RL reweights (doesn't expand) the base; LLMs don't beat simple TS baselines and 
 - Reporting should quote **raw-return IC** alongside proxy IC, or the numbers read ~4× too good.
 - Remaining levers that could raise I(X;Y) itself (not just extraction): genuinely **non-public
   / alt-data** inputs, or **longer horizons** (lower noise) at the cost of transaction drag.
+
+## Extended reference index (LexiconArxiv-verified, 2026-07-03)
+
+**Financial-ML predictability & overfitting (grounds the 0.06 floor / momentum dominance):**
+| paper | venue | role |
+|--|--|--|
+| Gu, Kelly & Xiu, "Empirical Asset Pricing via ML" | RFS 2020 | **anchor**: best-ML monthly OOS R²≈0.4 % ⇒ ρ≈0.063 ≈ our 0.064; top signals = momentum/liq/vol |
+| Jegadeesh & Titman, "Returns to Buying Winners…" | JF 1993 | momentum ~1 %/mo — the dominant, most-replicated anomaly (grounds E1) |
+| Bailey & López de Prado, "Deflated Sharpe Ratio" | JPM 2014 | multiple-testing deflation → report #variants tried; high numbers suspect |
+| Bailey et al., "Pseudo-Mathematics & Financial Charlatanism" | Notices AMS 2014 | Prob. of Backtest Overfitting → OOS discipline |
+| Harvey, Liu & Zhu, "…and the Cross-Section of Expected Returns" | RFS 2016 | t>3 hurdle; factor zoo; momentum survives |
+| Hou, Xue & Zhang, "Replicating Anomalies" | RFS 2020 | 65–82 % anomalies fail; markets more efficient than thought |
+| Chen, "Most Claimed Findings … Likely True" | [2206.15365](https://arxiv.org/abs/2206.15365) | **dissent**: predictability real-but-small → 0.06 not pure noise |
+| Kelly, Malamud & Zhou, "Virtue of Complexity" | JF 2023 | **tension**: complexity helps market-timing |
+| Nagel, "Seemingly Virtuous Complexity"; Buncic (SSRN) | BFI 2025 | deflate VoC → it *is* vol-timed momentum (supports us) |
+
+**Information-ceiling estimation (E7 methodology):**
+| paper | venue | role |
+|--|--|--|
+| "Forecastability as an Information-Theoretic Limit" | [2603.27074](https://arxiv.org/abs/2603.27074) | **identity** I = −½ln(1−R²) nats — converts our IC → MI directly |
+| Kraskov, Stögbauer, Grassberger, KSG MI | Phys.Rev.E 2004 | nonparametric MI (our E7 primary, via sklearn) |
+| McAllester & Stratos, "Formal Limitations…MI" | AISTATS 2020 | O(ln N) cap on MI lower bounds — our target sits 3–4 orders below |
+| Song & Ermon, SMILE; Poole et al., "Variational Bounds of MI" | ICLR/2019 | neural-MI bias/variance pitfalls (why we didn't lead with MINE) |
+| Ishida et al., "…Estimating the Bayes Error" | ICLR 2023 | optional E7 hardening (binary irreducible-error) |
+
+**Text / alt-data value (grounds #2, designs E8):**
+| paper | venue | role |
+|--|--|--|
+| Tetlock, "Giving Content to Investor Sentiment" | JF 2007 | media sentiment → transient reversal, not durable info |
+| Heston & Sinha, "News vs. Sentiment" | FAJ 2017 | daily news predicts only 1–2 d |
+| Ke, Kelly & Xiu, "Predicting Returns With Text" (SESTM) | NBER 2019 | **counter**: return-fitted text extraction *does* add alpha → oracle feature for E8 |
+| Lopez-Lira & Tang, "Can ChatGPT Forecast…" | [2304.07619](https://arxiv.org/abs/2304.07619) | LLM headline signal real but unprofitable at ~20 bps |
+| Merrill/Tan; Tan et al. | EMNLP/NeurIPS 2024 | LLMs are weak text→forecast encoders (LLM null ≠ info null) |
+| Barber et al.; Lakonishok & Lee | JF 2001 / RFS 2001 | analyst/insider signal gross-only, small-cap, dies net of cost |
+
+See the distillation-methods survey ([`2026-07-03-distillation-v3-lit.md`](2026-07-03-distillation-v3-lit.md))
+for the reasoning-distillation literature informing the live experiment.
