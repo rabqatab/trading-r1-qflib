@@ -1,5 +1,11 @@
 # Is the GBM a valid proxy for the LLM? — rigorous multi-axis test (2026-06-30)
 
+> ⚠️ **Correction (2026-07-03, [`why-the-ceiling.md`](2026-07-03-why-the-ceiling.md)):** this doc
+> treats the GBM's ~0.24 as the *input signal ceiling*. That is now known to be too low — a linear
+> **momentum** model reaches **0.266** on the same proxy, so the GBM itself under-extracts. The
+> "GBM = upper bound" claim below holds only vs the *LLM variants tested here*, not as the true
+> information ceiling. The tradeable (raw-return) ceiling is ≈0.06.
+
 > Code: reproduced from cached LLM decisions (`compare_lab/.cache_*`) + a HistGBM on the
 > same price/technical features. No LLM inference needed.
 

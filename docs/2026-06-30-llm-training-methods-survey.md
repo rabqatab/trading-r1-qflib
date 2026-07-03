@@ -30,6 +30,12 @@
 
 ## 2. Is the ceiling breakable? (theory says no — by modelling alone)
 
+> **Update 2026-07-03 — this section is refined by [`why-the-ceiling.md`](2026-07-03-why-the-ceiling.md).**
+> The "~0.24 ceiling" here is GBM on the *smoothed `make_signal` proxy*. A linear momentum model
+> actually reaches 0.266 on that proxy (GBM/LLM under-extract), but against **raw returns** the
+> ceiling is **≈0.06** (weak-form EMH). "Not breakable by modelling" holds for the *real-return*
+> ceiling (I(X;Y), DPI), not for the proxy number below.
+
 - **"Can GRPO Help LLMs Transcend Their Pretraining Origin?"** ([2510.15990](https://arxiv.org/pdf/2510.15990)).
   GRPO **reweights/sharpens latent capability; does not create new knowledge.** Where the base's
   input signal is weak, RL cannot compensate. ⇒ the *theoretical* reason our RL never beat 0.24.

@@ -92,18 +92,28 @@ required or PEFT LoRA loading raises an incompatible-torchao ImportError.
 ## Results (2026-07-02)
 
 ### #1 Learning curve (full-MM eval, 2025-H1 OOS, n=1000, SE≈0.032)
-| SFT examples | IC | class dist (of 1000) | read |
+| SFT examples | IC | class dist | read |
 |--:|--:|--|--|
-| 0 (base) | _base rerun in progress_ ¹ | — | base writes essays, needs max_new≥1024 |
-| 267 | **+0.013** | SELL **899** / STRONG_* 66 / HOLD 35 | **mode-collapse to SELL** → ~zero signal |
-| 1,000 | **−0.022** | STRONG_* 499 / SELL 377 / BUY 124 | still skewed (barbell) → ~zero signal |
-| 3,047 | **+0.163** | SELL 297 / HOLD 275 / BUY 269 / STRONG_* 159 | **balanced, no collapse, real signal (z≈5)** |
+| **0 (base, prompt-only)** | **+0.205** | BUY 492 / HOLD 269 / SELL 160 (n=951, 49 inval) | **already at the ceiling by its own reasoning** |
+| 267 | +0.013 | SELL **899** / STRONG_* 66 / HOLD 35 | **mode-collapse to SELL** → ~zero signal |
+| 1,000 | −0.022 | STRONG_* 499 / SELL 377 / BUY 124 | still skewed (barbell) → ~zero signal |
+| 3,047 | +0.163 | SELL 297 / HOLD 275 / BUY 269 / STRONG_* 159 | balanced, real signal, but < base |
 
-**Headline finding:** template-SFT is *collapse-bound* below ~1k examples and only at the
-full **3,047** does it (a) stop collapsing and (b) produce a genuine OOS IC of **0.163**.
-This is a *real* LLM data-scale curve — it directly corrects the earlier (invalid)
-GBM-proxy claim that "10× data is useless." Data scale both **repairs collapse** and
-**lifts IC**.
+**Headline finding (the curve flips the story):** the **untrained base** Qwen3-4B already
+scores **IC 0.205 — statistically at the GBM ceiling (0.215)** — purely by prompting. Template
+-SFT does **not** add signal: it *collapses* at 267/1k (degenerate single-class, IC≈0) and only
+*recovers* to 0.163 at 3,047 — still ~1 SE **below** the base it started from. So on this task
+template-SFT is at best a lossy re-encoding of ability the base already has, and at small data it
+is actively destructive. (Honest stats: base 0.205 vs sft-3047 0.163 is only ~0.9 SE — "SFT
+hurts" is *suggestive*, not significant; but "SFT gives no benefit over base" and "small-N SFT
+collapses" are both solid.) This still corrects the earlier invalid GBM-proxy "10× data useless"
+claim — more data *does* repair collapse — but the deeper lesson is that **the ceiling is reached
+before any fine-tuning**, which is exactly what an input-bound (not model-bound) ceiling predicts.
+
+⚠️ **Contamination caveat:** 2025-H1 is inside Qwen3-**2507**'s pretraining window, so the base's
+0.205 could carry some recall. But the memory-free GBM also hits 0.215 on the same features, so
+~0.21 is genuinely extractable *without* memory → the base's score is plausibly real reasoning,
+not just recall. (A strictly post-cutoff slice would settle it; see the ceiling investigation.)
 
 ### Same-universe GBM ceiling (how far is 0.163 from achievable?)
 `compare_lab/gbm_ceiling.py` — a **valid** GBM use (input-ceiling, not LLM proxy): the same
@@ -115,19 +125,28 @@ GBM-proxy claim that "10× data is useless." Data scale both **repairs collapse*
 |--|--:|
 | GBM continuous (input ceiling) | **+0.215** |
 | GBM 5-class-bucketed (LLM-fair coarseness) | +0.206 |
-| **LLM template-SFT 3,047** | **+0.163** |
+| **base LLM (prompt-only)** | **+0.205** |
+| LLM template-SFT 3,047 | +0.163 |
 
-So the ~0.24 ceiling **holds at 150 tickers on fresh 2025-OOS** (GBM 0.215 — input-bound,
-universe/period-robust), and the template-SFT LLM captures **76 % of the continuous / 79 %
-of the 5-class ceiling**. The residual **0.05 IC gap is real under-extraction** (now
-quantified, not asserted) → the levers are distillation (SFT v2) and a stronger verifier
-reward (survey bottleneck A/B), **not** more data (3k already clears the collapse regime).
+GBM (0.215) and the base LLM (0.205) land together at ~0.21, with template-SFT (0.163) below.
+⚠️ **This was NOT the true ceiling** — the dedicated investigation
+([`2026-07-03-why-the-ceiling.md`](2026-07-03-why-the-ceiling.md)) shows a one-feature linear
+**momentum** model reaches **0.266** on this proxy (GBM/LLM *under-extract*), and that the whole
+proxy is ~4× inflated by smoothing — the real **raw-return** ceiling is **≈0.06** (weak-form
+EMH). So "GBM 0.215 = input ceiling / LLM captures 76 %" (above) is **corrected there**: read
+this GBM number as one under-extracting model on a smoothed proxy, not the information limit.
 
-### #2 Multimodal ceiling (+news/fund/sent/macro vs price-only, same OOS)
-| model | full-MM IC | price-only IC | verdict |
-|--|--:|--:|--|
-| base (prompt-only) | _base rerun in progress_ ¹ | _base rerun in progress_ ¹ | clean test = base mm vs px |
-| SFT-3047 | +0.163 | **nan — collapses to all-STRONG** ² | not a clean test (modality-mismatch OOD) |
+### #2 Multimodal ceiling (+news/fund/sent/macro vs price-only, same OOS) — CLEAN result
+| model | full-MM IC | price-only IC | Δ | verdict |
+|--|--:|--:|--:|--|
+| **base (prompt-only)** | **+0.205** | **+0.203** | **+0.002** | **news/alt-data add ~nothing over price** |
+| SFT-3047 | +0.163 | nan (all-STRONG, OOD) ² | — | not a clean test (modality mismatch) |
+
+**#2 verdict:** on the clean base-model test, full multimodal text (news + fundamentals +
+analyst/insider sentiment + macro) beats price-only by **+0.002 IC — a null result.** This
+**replicates the prior 14-ticker MM_RICH finding at 10× universe**: at headline-level text
+granularity, alt-data does not break the price/technical ceiling. (Article *bodies* / true
+alt-data remain the one untested lever — see the investigation.)
 
 ¹ The first run used `max_new=200`; the base model writes a ~2,000-char analysis before
 its `[[[CLASS]]]`, so all 1000 base rows were truncated-invalid. Re-running base mm+px at
@@ -136,6 +155,42 @@ emit a short thesis+tag in <200 tok; 0 invalid).
 ² Feeding the full-MM-trained model price-only prompts (missing the NEWS/FUND/SENT/MACRO
 sections it always saw) drives it out-of-distribution → degenerate all-STRONG. So the clean
 #2 must come from the **base** model (no training confound), not this ablation.
+
+## Distillation v3 (Opus 4.8 teacher) — RUNNING
+
+The template-SFT captures only **76 %** of the GBM ceiling (§ above). Is the residual a
+*rationale-quality* gap? Distillation is the direct test — but the **prior** attempt (SFT v2,
+Qwen3-30B teacher, `sft/distill.py`) was a **regression**: its long §8 theses caused 9.2 %
+NO_TAG non-termination and a 2.6× worse drawdown (20.7 % vs v1's 7.9 %). Verdict then: the
+*long verbose style* hurt, "revisit with shorter, decisive teacher theses."
+
+v3 does exactly that, with a much stronger teacher:
+- **Teacher = Claude Opus 4.8** via the subscription (`claude -p --model opus`, `sft/distill_opus.py`)
+  — no API billing, no local GPU (teacher is cloud). Per-example cache → resumable across
+  subscription rate-limit windows; low concurrency + backoff.
+- **v2 fix baked in:** terse prompt — 3–4 sentences, ≤110 words, each claim grounded in a
+  quoted data value, **last line must be exactly `[[[LABEL]]]`.** A 5-example probe: 5/5
+  tag-terminated, evidence-rich (quotes RSI/MACD/SMA + headlines + analyst upgrades), and
+  even reasons the *class boundary* ("volatility argues against STRONG_BUY size → a measured
+  long"). Early full-run success rate ≈ 99 %.
+- **Reverse-reasoning** (teacher shown the label, justifies it) → guarantees decision↔label
+  alignment; no reject-sampling discard on the noisy label.
+- **Perfectly controlled comparison:** reuses the **exact same 3,047 prompts** as the
+  template-SFT set (same multimodal input, same label) — only the rationale differs. Student
+  LoRA SFT (same recipe, **via sparkq**), scored on the **same** 2025-H1 OOS eval + GBM ceiling.
+
+### 3-way result (same 3,047 prompts, same OOS) — distill PENDING
+| target style | OOS IC | vs ceiling |
+|--|--:|--:|
+| GBM (input ceiling) | +0.215 | 100 % |
+| template-SFT 3,047 | +0.163 | 76 % |
+| **Opus-distill-SFT 3,047** | _pending_ | _pending_ |
+
+Reads: distill IC **> 0.163 toward 0.215** ⇒ the gap was rationale quality; template
+under-taught reasoning. Distill IC **≈ 0.163** ⇒ the gap is *input-bound*, not rationale —
+even Opus can't extract more from these features (strengthens the ceiling thesis). Distill IC
+**< 0.163** ⇒ the v2 failure mode recurs (verbose/over-confident teacher hurts) despite the
+terseness fix.
 
 ## How to read the result (guardrails set *before* seeing it)
 - **If IC rises with data then plateaus below ~0.24:** data-scale helps template-SFT up
