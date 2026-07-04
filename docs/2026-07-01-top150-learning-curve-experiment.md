@@ -179,18 +179,34 @@ v3 does exactly that, with a much stronger teacher:
   template-SFT set (same multimodal input, same label) — only the rationale differs. Student
   LoRA SFT (same recipe, **via sparkq**), scored on the **same** 2025-H1 OOS eval + GBM ceiling.
 
-### 3-way result (same 3,047 prompts, same OOS) — distill PENDING
-| target style | OOS IC | vs ceiling |
-|--|--:|--:|
-| GBM (input ceiling) | +0.215 | 100 % |
-| template-SFT 3,047 | +0.163 | 76 % |
-| **Opus-distill-SFT 3,047** | _pending_ | _pending_ |
+### 3-way result (same 2025-H1 OOS, n=1000, SE≈0.032) — LANDED 2026-07-04
+Corpus: 2,742 QC-passed Opus theses (98 % gate-pass, grounding 0.98, all 5 classes; the 207
+of 3,000 that never distilled were rate-limit dropouts). Student LoRA SFT via sparkq (2 epochs,
+same recipe as template).
 
-Reads: distill IC **> 0.163 toward 0.215** ⇒ the gap was rationale quality; template
-under-taught reasoning. Distill IC **≈ 0.163** ⇒ the gap is *input-bound*, not rationale —
-even Opus can't extract more from these features (strengthens the ceiling thesis). Distill IC
-**< 0.163** ⇒ the v2 failure mode recurs (verbose/over-confident teacher hurts) despite the
-terseness fix.
+| model | OOS IC | invalid | note |
+|--|--:|--:|--|
+| base (prompt-only) | **+0.205** | 49 | untrained; still the best |
+| **Opus-distill-SFT** | **+0.171** | 0 ¹ | terse Opus theses |
+| template-SFT 3,047 | +0.163 | 0 | templated rationale |
+| *ref:* momentum / GBM / raw-return | 0.266 / 0.215 / **0.06** | — | proxy vs tradeable ceiling |
+
+**Verdict — lands on pre-registered guardrail #2 ("input-bound, not rationale"):**
+- distill 0.171 **> template 0.163** by only **+0.008 (~0.25 SE, not significant)** — the strongest
+  possible teacher (Opus 4.8) barely moves IC over a formulaic template. Rationale *quality* is not
+  the lever.
+- distill 0.171 **< base 0.205** by −0.034 (~1 SE) — **no SFT beats the untrained base.** Consistent
+  with the ceiling thesis: the base already sits near the input-extractable limit; SFT-to-a-noisy
+  label is at best a lossy re-encoding.
+- distillation's value here is **format/interpretability, not predictive skill** — and even that
+  carried a cost (¹).
+
+¹ **The thesis-first non-termination tax (literature-predicted).** At `max_new=200` the distill
+model produced **489/1000 invalid** (no `[[[CLASS]]]` within budget) — it learned Opus's ~110-word
+style, longer than the template's ~292-char one. At `max_new=512` invalid → **0** and IC 0.171, so
+it was pure inference-budget truncation, not a format-learning failure. This is exactly the
+`thesis → LABEL` ordering risk Wadhwa (EMNLP 2024) flags; the fix (label-first) is the top v3.1
+recommendation in [`2026-07-03-distillation-v3-lit.md`](2026-07-03-distillation-v3-lit.md).
 
 ## How to read the result (guardrails set *before* seeing it)
 - **If IC rises with data then plateaus below ~0.24:** data-scale helps template-SFT up

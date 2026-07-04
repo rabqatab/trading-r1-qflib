@@ -143,6 +143,19 @@ context-richness levers) are in the [memo](docs/2026-06-21-three-way-comparison-
 
 ## What we learned (honest findings)
 
+> **⏫ 2026-07 top-150 scale-up — three findings that refine/overturn the below**
+> (full: [`docs/2026-07-01-top150-learning-curve-experiment.md`](docs/2026-07-01-top150-learning-curve-experiment.md),
+> [`docs/2026-07-03-why-the-ceiling.md`](docs/2026-07-03-why-the-ceiling.md)):
+> - **No SFT beats the untrained base.** On 150 tickers / fresh 2025-H1 OOS: base LLM (prompt-only)
+>   **IC 0.205** > Opus-4.8-distilled SFT **0.171** > template-SFT **0.163**. The strongest teacher
+>   (Opus 4.8) beats the template by only +0.008 (ns); rationale *quality* isn't the lever.
+> - **The "0.24 ceiling" was model under-extraction, not the input limit.** A **1-feature linear
+>   momentum** model hits **IC 0.266** on the `make_signal` proxy — above GBM (0.215) and every LLM.
+> - **The real tradeable ceiling is ~0.06, not ~0.24.** `make_signal` (forward-EMA, overlapping
+>   horizons) is ~4× inflated by smoothing: momentum IC collapses 0.266 → **0.064** on raw returns —
+>   which *matches* Gu-Kelly-Xiu's best-ML monthly R²≈0.4 % (ρ≈0.063). Measured MI (KSG 0.034 nats)
+>   sits 3–4 orders below the estimation limit → the cap is **information (I(X;Y)), not the model**.
+
 1. **Prediction ≠ profit — and "reward optimized" was overclaimed.** The bull-window Sharpes
    (incl. graded's 0.93) are largely a *long-bias dividend* of a rising market — in the flat
    2025-H1 slice every LLM loses, and graded loses −4.3 % *despite a higher IC there*. And
@@ -154,6 +167,9 @@ context-richness levers) are in the [memo](docs/2026-06-21-three-way-comparison-
    regimes — not raw bull Sharpe.
 2. **There is a ~0.24 IC ceiling on the *tabular / quantified* input** (price + technical
    indicators + crude news *counts*) — i.e. the limit of what a strong **GBM** can extract.
+   > ⚠️ **Refined 2026-07-03** (see the update box above): 0.24 is GBM's number *on the smoothed
+   > proxy*; a linear momentum model reaches 0.266 (GBM under-extracts), and the *tradeable*
+   > raw-return ceiling is **~0.06**. Read this as "GBM on the proxy," not the information limit.
    Four independent checks say *that* limit is the input, not the model: **(a) no overfit** —
    in-sample IC ≈ out-of-sample IC (can't beat 0.2 even on training data); **(b)
    feature-invariant** — 3× more features + cross-sectional + market-neutral target stay
