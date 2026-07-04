@@ -6,9 +6,12 @@
 
 ## TL;DR
 
-- **The ~0.24 IC ceiling is input-bound and now *theoretically* expected:** published/preprint
-  work shows **GRPO reweights latent pretrained ability, it does not create new capability** — so
-  RL cannot transcend a ceiling set by the input/pretraining. No method below claims to break it.
+- **The IC ceiling is input-bound** (published/preprint work shows **GRPO reweights latent ability,
+  it does not create new capability** — RL can't transcend the input). ⚠️ **But the number was
+  wrong** (corrected in [`why-the-ceiling.md`](2026-07-03-why-the-ceiling.md), 2026-07-03): 0.24 is
+  GBM *under-extracting a smoothed proxy* — linear momentum reaches 0.266, and the *tradeable*
+  raw-return ceiling is **~0.06** (weak-form EMH, measured MI). No method below breaks the *real*
+  ceiling; several close the *proxy* under-extraction gap.
 - **Two genuinely new directions that fit us (both = "use the LLM for what it's good at"):**
   1. **NOVER — verifier-free RL** (EMNLP 2025, code): sidesteps our broken *noisy verifier* (the
      matrix/label reward that fails the reward gate).
@@ -125,6 +128,14 @@ both ours to reuse:
 
 All four lift the LLM *to* the ceiling or use it better; none break the input ceiling — that still
 needs richer input (article bodies, alt-data) or lower transaction cost.
+
+> **⚠️ Update 2026-07-04 — the 2026-07 top-150 experiments overtook this plan.** We tested the
+> data-scale and (Opus 4.8) distillation levers directly: **no SFT beats the untrained base**
+> (base 0.205 > distill 0.171 > template 0.163), and the real tradeable ceiling is **~0.06**, not
+> 0.24 (see [`why-the-ceiling.md`](2026-07-03-why-the-ceiling.md)). So the methods below are worth
+> at most closing the *proxy* under-extraction gap; none change the information limit. Priorities 1
+> (hybrid) and 2 (verifier-free) remain the only ones that could raise **I(X;Y)** itself, and only
+> via *new inputs*, not better modelling.
 
 ## 6. Reference index
 

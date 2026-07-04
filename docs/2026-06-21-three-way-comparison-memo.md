@@ -1,5 +1,11 @@
 # Trading-R1 × qf-lib — 3-Way Signal Comparison (Memo)
 
+> ⚠️ **Historical (2026-06-21).** Superseded on the ceiling/skill question by the 2026-07 top-150
+> work: the "~0.2 IC ceiling" here is a *smoothed-proxy* number; the real tradeable ceiling is
+> **~0.06**, and **no SFT beats the untrained base** (base 0.205 > distill 0.171 > template 0.163).
+> See [`2026-07-03-why-the-ceiling.md`](2026-07-03-why-the-ceiling.md) and
+> [`2026-07-01-top150-learning-curve-experiment.md`](2026-07-01-top150-learning-curve-experiment.md).
+
 **Date:** 2026-06-21 · **Author:** compare_lab · **Status:** first LLM row landed
 **One line:** A prompt-only 4B LLM, given only price+technical data and no
 training, produces a *defensive, differentiated* equity signal — lowest return
