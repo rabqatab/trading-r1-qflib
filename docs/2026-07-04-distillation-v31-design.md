@@ -47,3 +47,29 @@ Opus calls). Expected to drop the theses where Opus rationalized noise — a cle
 - **filter drops a large fraction (say >40 %):** many Opus theses were justifying label noise — a
   finding in itself (validates the SCOTT concern), report the drop rate.
 - Report the **invalid rate at max_new=64** as the headline format-tax metric.
+
+## RESULTS (2026-07-05) — both fixes worked *on the proxy*; the ceiling framework caught the mirage
+
+| model | **proxy IC** | **RAW 7d IC** | invalid | class dist |
+|--|--:|--:|--:|--|
+| **distill v3.1** | **0.228** | **0.025** | **0** | BUY 32 / HOLD 327 / SELL 435 / SS 206 |
+| GBM (ref) | 0.215 | 0.042 | — | — |
+| base | 0.205 | 0.000 | 49 | BUY 492 (bullish) |
+| distill v3 | 0.171 | −0.007 | 0 | — |
+| template | 0.163 | 0.001 | 0 | — |
+| momentum (ref) | 0.266 | **0.064** | — | — |
+
+- **The two fixes worked — on the proxy.** Self-consistency filter kept **87 %** (2391/2742 →
+  Opus theses genuinely imply their labels; the SCOTT noise-justification concern was small).
+  Label-first drove **invalid 489→0 at max_new=64** — the format tax is *gone*. proxy IC jumped
+  0.171→**0.228**, above base (0.205) and GBM (0.215).
+- **But it is a mirage — the pre-registered "≥ base ⇒ investigate" guardrail fired, and the
+  raw-return check dissolved it.** On tradeable raw 7-day returns v3.1 is **0.025** — near zero,
+  below momentum's 0.064; base/v3/template are all ~0 too. **No SFT gained real predictive skill;
+  the ~0.06 ceiling holds.** The proxy jump rode a **bearish class collapse** (BUY 492→32) that
+  aligned with the smoothed proxy in a soft 2025-H1 — the *bear-window* mirror of the earlier
+  "graded reward = bull-window long-bias, not skill" lesson ([[graded-reward-breakthrough]]).
+- **Verdict:** label-first + filtering are the right *engineering* fixes (0 invalid, cleaner
+  corpus, best proxy IC) — but they optimize the **smoothed proxy**, not tradeable return. This is
+  the whole investigation's thesis demonstrated live: proxy IC is gameable; raw-return IC is the
+  honest metric and it stays at the EMH floor. Report **both** ICs, always.

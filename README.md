@@ -146,9 +146,12 @@ context-richness levers) are in the [memo](docs/2026-06-21-three-way-comparison-
 > **⏫ 2026-07 top-150 scale-up — three findings that refine/overturn the below**
 > (full: [`docs/2026-07-01-top150-learning-curve-experiment.md`](docs/2026-07-01-top150-learning-curve-experiment.md),
 > [`docs/2026-07-03-why-the-ceiling.md`](docs/2026-07-03-why-the-ceiling.md)):
-> - **No SFT beats the untrained base.** On 150 tickers / fresh 2025-H1 OOS: base LLM (prompt-only)
->   **IC 0.205** > Opus-4.8-distilled SFT **0.171** > template-SFT **0.163**. The strongest teacher
->   (Opus 4.8) beats the template by only +0.008 (ns); rationale *quality* isn't the lever.
+> - **No SFT gains real predictive skill.** On the smoothed proxy (150 tk / fresh 2025-H1 OOS):
+>   base **0.205**, distill-v3 0.171, template 0.163; a tuned **v3.1 (label-first + self-consistency
+>   filter) reached 0.228 — above base *and* GBM 0.215**. But on **raw tradeable returns every model
+>   is ~0** (v3.1 0.025, base 0.000, momentum 0.064). v3.1's proxy jump was a bearish class collapse
+>   riding the smoothed proxy — the pre-registered guardrail + raw-return check caught the mirage.
+>   Lesson: **report raw-return IC next to proxy IC — proxy IC is gameable, raw is the ~0.06 floor.**
 > - **The "0.24 ceiling" was model under-extraction, not the input limit.** A **1-feature linear
 >   momentum** model hits **IC 0.266** on the `make_signal` proxy — above GBM (0.215) and every LLM.
 > - **The real tradeable ceiling is ~0.06, not ~0.24.** `make_signal` (forward-EMA, overlapping
