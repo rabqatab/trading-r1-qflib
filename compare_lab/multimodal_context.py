@@ -97,13 +97,19 @@ class MultiModalStore:
     _NEWS_BUCKETS = (("≤3d", 0, 3, 10), ("4-10d", 4, 10, 20), ("11-30d", 11, 30, 20))
 
     def render_sections(self, ticker: str, as_of, *, max_events: int = 12,
-                        rich: bool = False) -> str:
+                        rich: bool = False, with_summary: bool = False) -> str:
         as_of = pd.Timestamp(as_of)
         out: list[str] = []
 
         # rich = paper-faithful "dump the raw text": every headline in a 60d window,
-        # uncapped. Default = the bucketed ≤50 view. (Our news is headlines-only —
-        # no article bodies — so this is the densest text input the data allows.)
+        # uncapped. Default = the bucketed ≤50 view.
+        # with_summary = append each article's Finnhub `summary` (Track B, #5): the only
+        # gap-closing lever that could raise I(X;Y) over headline-only text.
+        def _line(r):
+            base = f"  {r['published_at'].date()} | {r['headline']} ({r['source']})"
+            s = str(r.get("summary", "") or "").strip() if with_summary else ""
+            return base + (f"\n      {s}" if s else "")
+
         lookback = 60 if rich else 30
         news = self.news(ticker, as_of, lookback_days=lookback)
         out.append(f"=== NEWS (last {lookback}d) ===")
@@ -111,8 +117,7 @@ class MultiModalStore:
             out.append("  none")
         elif rich:
             for _, r in news.sort_values("published_at", ascending=False).iterrows():
-                out.append(f"  {r['published_at'].date()} | {r['headline']} "
-                           f"({r['source']})")
+                out.append(_line(r))
         else:
             age = (as_of - news["published_at"]).dt.days
             for tag, lo, hi, cap in self._NEWS_BUCKETS:
@@ -121,8 +126,7 @@ class MultiModalStore:
                     continue
                 out.append(f"  [{tag}]")
                 for _, r in b.iterrows():
-                    out.append(f"  {r['published_at'].date()} | {r['headline']} "
-                               f"({r['source']})")
+                    out.append(_line(r))
 
         fund = self.fundamentals(ticker, as_of)
         out.append("=== FUNDAMENTALS (latest filed) ===")

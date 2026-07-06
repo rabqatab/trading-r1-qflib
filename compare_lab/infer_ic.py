@@ -34,6 +34,8 @@ def main() -> int:
     ap.add_argument("--adapter", default=None)
     ap.add_argument("--batch", type=int, default=16)
     ap.add_argument("--max-new", type=int, default=300)
+    ap.add_argument("--max-length", type=int, default=4096,
+                    help="prompt truncation cap; raise to 8192 for +summary prompts")
     args = ap.parse_args()
 
     rows = [json.loads(l) for l in open(args.eval)]
@@ -59,7 +61,7 @@ def main() -> int:
     for i in range(0, len(texts), args.batch):
         chunk = texts[i:i + args.batch]
         enc = tok(chunk, return_tensors="pt", padding=True, truncation=True,
-                  max_length=4096).to("cuda")
+                  max_length=args.max_length).to("cuda")
         with torch.no_grad():
             out = model.generate(**enc, max_new_tokens=args.max_new,
                                  do_sample=False, pad_token_id=tok.pad_token_id)
