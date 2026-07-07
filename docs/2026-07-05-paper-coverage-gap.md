@@ -80,11 +80,18 @@ headlines, up to ~1.5k) with real content — the paper's actual news source.
 - Re-crawled 150 tk × 2024-11…2025-07 → `news_top150_summ.parquet` (150k rows, summary 95 %); built a
   clean ablation (same Finnhub news, headline-only vs +summary, ~2× length, base-model prompt-only, same
   2025-H1 OOS, max_length 8192 so the +summary variant isn't truncated).
-- **RESULT — headline (2026-07-07):** proxy IC 0.193, **RAW 7d IC −0.010** (n=930). The base model on
-  Finnhub headlines replicates the earlier Google-RSS-headline null — **headline text carries ~0 raw
-  signal.** (+summary variant re-running as `ec49` after two max-runtime kills — base is slow, no early
-  termination; result pending.)
-- **Contrast that matters:** even if +summary comes back null, we already have a *positive* text-adjacent
-  result from the same paid key — **analyst revision (raw IC 0.080, [[analyst-revision-signal]])** — a
-  *structured* signal, not free text. Tentative synthesis: the value in the news feed is not the prose
-  (LLM under-extracts it) but the *structured analyst response* to it.
+- **RESULT — clean NULL (2026-07-07):** base model, same Finnhub news, headline vs +summary:
+  | variant | proxy IC | **RAW 7d IC** |
+  |--|--:|--:|
+  | headline-only | 0.193 | **−0.010** |
+  | +summary (~2× text, real article bodies, median 149 char) | 0.169 | **−0.010** |
+  Adding the article summaries moves raw IC by **0.000** (proxy even drops — more text distracts the
+  base model). **#5 — the paper's headline lever (rich news text to the LLM) — carries ~0 tradeable
+  signal at 150-ticker scale.** Replicates the earlier 14-ticker MM_RICH null, now with real article
+  bodies, not just headlines. The one untested paper difference (full 15-23k-token article bodies) is
+  extrapolated-dead: doubling to real summaries already added nothing.
+- **The contrast that matters:** the same paid key's **analyst revision (raw IC 0.080,
+  [[analyst-revision-signal]])** — a *structured* signal — is the only thing that touched raw returns.
+  **Synthesis: the value in a news feed is not the prose (the LLM under-extracts it, as Merrill/Tan
+  predict) but the structured analyst RESPONSE to it.** This is the empirical case for roadmap D
+  (LLM-as-encoder / structured features), not end-to-end text reasoning.
