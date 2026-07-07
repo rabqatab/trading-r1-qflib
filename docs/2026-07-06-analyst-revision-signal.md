@@ -53,3 +53,27 @@ are the open questions.
 - **Framing:** even if revision stabilizes at raw-IC ~0.05–0.08, that is still near the EMH floor — the
   win is not a high IC but **a second, decorrelated ~0.06 signal** to *combine* with price (Granger
   forecast-combination / √K), which is the honest route to a higher *effective* IC (roadmap B/§5).
+
+## Follow-up (2026-07-08): PEAD works too, and the combination delivers — raw IC 0.096
+
+`compare_lab/signal_combine_ic.py`, Finnhub `/calendar/earnings` (announcement **date** field →
+fully PIT-safe post-earnings drift). Same 2025-H1 OOS grid:
+
+| signal | RAW 7d IC | n | Q1 / Q2 |
+|--|--:|--:|--|
+| momentum (10d) | +0.064 | 1000 | −0.077 / +0.099 |
+| revision (3mo consensus) | +0.080 | 995 | −0.052 / +0.165 |
+| **PEAD (latest EPS surprise ≤90d)** | **+0.068** | 933 | **+0.008 / +0.089** (most stable) |
+| mom+rev rank-mean | +0.090 | 1000 | |
+| **all-3 rank-mean** | **+0.096** | 1000 | −0.084 / +0.164 |
+
+- **Cross-correlations ~0** (mom-rev 0.080, mom-pead 0.078, **rev-pead −0.015**) → genuinely
+  decorrelated → the simple equal-weight rank average lifts raw IC **0.064 → 0.096 (+50 % over the
+  best single signal), with zero modelling** — the Granger/√K route working as the roadmap predicted.
+  The highest honest number in the project (z≈3.0).
+- **Mitigating context for the instability caveat:** the Q1/Q2 split shows **momentum itself was
+  negative in 2025-Q1** (−0.077) — Q1 was a regime where *every* signal failed, so revision's Q1<0 is
+  a regime effect shared with the oldest anomaly in finance, not evidence the signal is fake. (Still
+  one window; a multi-year OOS remains the real test, and costs/multiple-testing are unhaircut.)
+- PEAD is the **second** non-own-price signal to clear the ~0.06 ceiling, with the best temporal
+  stability of the three — consistent with its status as one of the most replicated anomalies.

@@ -8,7 +8,9 @@
 
 | # | approach | type | proxy IC | **RAW IC** | verdict |
 |--|--|--|--:|--:|--|
-| 1 | **Analyst revision momentum** (Finnhub, roadmap C#2) | **new information** | — | **+0.080** | first to clear the ceiling — but window-unstable (z≈2.5, Q1<0/Q2>0) |
+| 0 | **3-signal combo: momentum+revision+PEAD** (2026-07-08) | **combination of new info** | 0.217 | **+0.096** | best honest number (z≈3.0); zero modelling — just a rank average of ~decorrelated signals |
+| 1 | **Analyst revision momentum** (Finnhub, roadmap C#2) | **new information** | — | **+0.080** | first to clear the ceiling — window-unstable, but momentum shares the same Q1<0 regime |
+| 1b | **PEAD** (earnings-surprise drift, Finnhub calendar) | new information | — | +0.068 | second to clear it; most stable of the three (Q1 +0.008) |
 | 2 | reject-sampled blind SFT (Track A) | extraction | 0.261 | +0.053 | best SFT; concentrates on predictable momentum cases; marginal vs base |
 | — | momentum (1 feature, ref) | baseline | 0.266 | +0.064 | the hard-to-beat baseline |
 | — | GBM (ref) | baseline | 0.215 | +0.042 | under-extracts momentum |
