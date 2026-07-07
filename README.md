@@ -143,21 +143,32 @@ context-richness levers) are in the [memo](docs/2026-06-21-three-way-comparison-
 
 ## What we learned (honest findings)
 
-> **⏫ 2026-07 top-150 scale-up — three findings that refine/overturn the below**
-> (full: [`docs/2026-07-01-top150-learning-curve-experiment.md`](docs/2026-07-01-top150-learning-curve-experiment.md),
-> [`docs/2026-07-03-why-the-ceiling.md`](docs/2026-07-03-why-the-ceiling.md)):
-> - **No SFT gains real predictive skill.** On the smoothed proxy (150 tk / fresh 2025-H1 OOS):
->   base **0.205**, distill-v3 0.171, template 0.163; a tuned **v3.1 (label-first + self-consistency
->   filter) reached 0.228 — above base *and* GBM 0.215**. But on **raw tradeable returns every model
->   is ~0** (v3.1 0.025, base 0.000, momentum 0.064). v3.1's proxy jump was a bearish class collapse
->   riding the smoothed proxy — the pre-registered guardrail + raw-return check caught the mirage.
->   Lesson: **report raw-return IC next to proxy IC — proxy IC is gameable, raw is the ~0.06 floor.**
-> - **The "0.24 ceiling" was model under-extraction, not the input limit.** A **1-feature linear
->   momentum** model hits **IC 0.266** on the `make_signal` proxy — above GBM (0.215) and every LLM.
-> - **The real tradeable ceiling is ~0.06, not ~0.24.** `make_signal` (forward-EMA, overlapping
->   horizons) is ~4× inflated by smoothing: momentum IC collapses 0.266 → **0.064** on raw returns —
->   which *matches* Gu-Kelly-Xiu's best-ML monthly R²≈0.4 % (ρ≈0.063). Measured MI (KSG 0.034 nats)
->   sits 3–4 orders below the estimation limit → the cap is **information (I(X;Y)), not the model**.
+> **⏫ 2026-07 top-150 scale-up — the ceiling is information-bound at raw IC ~0.06, and no modelling
+> beats it.** Full scoreboard: [`docs/2026-07-07-final-synthesis.md`](docs/2026-07-07-final-synthesis.md);
+> why: [`docs/2026-07-03-why-the-ceiling.md`](docs/2026-07-03-why-the-ceiling.md); next work:
+> [`docs/2026-07-06-post-ceiling-roadmap.md`](docs/2026-07-06-post-ceiling-roadmap.md).
+>
+> **Honest scoreboard — raw 7-day-return IC, same 2025-H1 OOS (proxy IC in parens):**
+> | approach | type | raw IC |
+> |--|--|--:|
+> | **analyst revision momentum** (Finnhub) | **new information** | **+0.080** (window-unstable) |
+> | reject-sampled blind SFT | best extraction | +0.053 (0.261) |
+> | *momentum, 1 feature (ref)* | baseline | +0.064 (0.266) |
+> | distill v3.1 (label-first+filter) | extraction | +0.025 (0.228) |
+> | base LLM / template / news headline / **+summary text** | — | **~0.00** (0.16–0.21) |
+>
+> Three refinements that **overturn** the "~0.24 ceiling" narrative below:
+> - **The "0.24 ceiling" was model under-extraction of a smoothing-inflated proxy.** 1-feature linear
+>   momentum hits proxy IC 0.266 (> GBM 0.215 > every LLM); on **raw returns it collapses to 0.064**
+>   (matches Gu-Kelly-Xiu best-ML ρ≈0.063). Measured MI (KSG 0.034 nats) → the cap is **I(X;Y), not
+>   the model**. **Report raw-return IC always — the proxy reads ~4× too good and is gameable** (v3.1
+>   "beat" base+GBM on proxy but was ~0 on raw — a bearish-collapse mirage the raw check caught).
+> - **No modelling lever beats the base on raw returns** — scale, Opus-4.8 distillation, reject-
+>   sampling all move raw IC ~0→0.05. **Only new information outside the own-price path moved it more**
+>   (analyst revisions, +0.080) — the data-processing inequality made concrete.
+> - **Prose is useless to the LLM here; structure is not.** News headlines AND full article summaries
+>   both gave raw IC ≈ 0 (the paper's core "rich text to the LLM" lever is a **clean null** at 150-tk);
+>   the structured analyst *response* (revision) gave 0.080. → use the LLM as a structure-encoder.
 
 1. **Prediction ≠ profit — and "reward optimized" was overclaimed.** The bull-window Sharpes
    (incl. graded's 0.93) are largely a *long-bias dividend* of a rising market — in the flat

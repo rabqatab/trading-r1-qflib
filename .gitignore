@@ -18,8 +18,12 @@ compare_lab/output*/
 compare_lab/.cache*/
 compare_lab/sft/data*/
 compare_lab/grpo/data*/
-# generated OOS eval set + infer logs/preds (rebuild via build_oos150_eval.py)
+# generated OOS eval sets + infer logs/preds (rebuild via build_oos150*_eval.py)
 compare_lab/eval150/
+compare_lab/eval150_summ/
+# fetched raw data (Finnhub news/recs), rebuild via fetch scripts
+data/finnhub_news_parts/
+data/finnhub_recs/
 # extracted bundle staging (canonical copies live under data/)
 data_top150/
 # raw trade-ready bundle (data artifact, ~31M)
