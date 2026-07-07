@@ -59,8 +59,15 @@ rationale).
   blind matches the noisy vol-adjusted label only ~28 % (below the all-HOLD best-const ~48 %). ⇒ ~72 %
   of the label is noise even the best teacher can't reconstruct — a *teacher-accuracy* angle on the
   small I(X;Y). Side effect: reject sampling keeps only ~28 % → a small (~800-ex) corpus (collapse-risk).
-- **Pending:** student SFT (sparkq) on the reject-sampled label-first corpus → IC (proxy + raw) vs
-  base 0.205 / v3.1 0.228→raw 0.025 / template 0.163.
+- **RESULT (2026-07-07):** reject-sampled corpus (806 train, BUY/SELL-heavy, STRONG_* dropped) →
+  student SFT. **proxy IC 0.261 (best of any SFT), RAW 7d IC 0.053 (also best SFT — base 0.000,
+  v3.1 0.025, template ~0).** Reject sampling kept only Opus's confidently-correct cases — mostly
+  clear-momentum BUY/SELL (class dist BUY 594 / SELL 370, HOLD/STRONG ~0) — so the student
+  concentrated on the *predictable* directional cases and got closest to momentum (0.064) on raw
+  returns. But 0.053 is z≈1.7 vs base (marginal), and still **below the analyst-revision signal
+  (0.080, new information)** → confirms the DPI hierarchy: extraction improvement < new information.
+  The dropped STRONG_*/HOLD classes are the quantile-cut boundaries that aren't predictable events
+  (roadmap A / López de Prado).
 
 ### Track B — #5 article text via Finnhub `summary` (the only ceiling-relevant lever)
 `compare_lab/fetch_finnhub_news.py`. Our shipped news is Google-News-RSS **headlines only**, and those
@@ -70,8 +77,14 @@ headlines, up to ~1.5k) with real content — the paper's actual news source.
 - **Note:** the provided Finnhub key is a **paid/premium** key (premium endpoints insider-sentiment /
   revenue-estimate / candles all return data), flagged for cost; approved to continue. Premium
   endpoints noted as a *future* enrichment lever.
-- **Pending:** re-crawl 150 tk × 2024-11…2025-07 → `news_top150_summ.parquet` → render headline+summary
-  → rebuild the eval prompts → **base-model prompt-only** IC (proxy + raw) on headline vs
-  headline+summary, same 2025-H1 OOS. Decisive test of whether richer text raises I(X;Y). Expectation
-  modest (LLM text under-extraction; prior headline null), but this is the first experiment that could
-  genuinely *move* the ceiling rather than just approach it.
+- Re-crawled 150 tk × 2024-11…2025-07 → `news_top150_summ.parquet` (150k rows, summary 95 %); built a
+  clean ablation (same Finnhub news, headline-only vs +summary, ~2× length, base-model prompt-only, same
+  2025-H1 OOS, max_length 8192 so the +summary variant isn't truncated).
+- **RESULT — headline (2026-07-07):** proxy IC 0.193, **RAW 7d IC −0.010** (n=930). The base model on
+  Finnhub headlines replicates the earlier Google-RSS-headline null — **headline text carries ~0 raw
+  signal.** (+summary variant re-running as `ec49` after two max-runtime kills — base is slow, no early
+  termination; result pending.)
+- **Contrast that matters:** even if +summary comes back null, we already have a *positive* text-adjacent
+  result from the same paid key — **analyst revision (raw IC 0.080, [[analyst-revision-signal]])** — a
+  *structured* signal, not free text. Tentative synthesis: the value in the news feed is not the prose
+  (LLM under-extracts it) but the *structured analyst response* to it.
