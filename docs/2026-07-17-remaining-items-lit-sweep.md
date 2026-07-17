@@ -115,6 +115,42 @@
 5. **Encoder ablation** (pri 5) — run last; value is mostly the clean (likely null) replication.
 6. **Norgate PIT re-test** — after 1–3 show the strategy survives costs; needs user's $ call.
 
+## Addendum (same day) — arXiv-restricted pass + LexiconArxiv corpus pass
+
+The first sweep was WebSearch-only (LexiconArxiv was disconnected). A supplementary
+arXiv-restricted agent + a reconnected-LexiconArxiv pass added, in priority order:
+
+1. **Risk-control line (stacks on our RU-CVaR controller)** — the richest vein:
+   - **arXiv:2602.03903** "Regime-Weighted Conformal Calibration for Nonstationary VaR" —
+     regime-similarity + time-decay weighted conformal buffer; improves stress-regime
+     calibration (equities 1990–2024). *Directly stackable*: an optional upgrade to
+     `ru_conformal()` if the 2020-COVID-style burst overshoot ever matters.
+   - **arXiv:2510.08748** "Conformal Risk Training" (**NeurIPS 2025**, per LexiconArxiv) —
+     end-to-end differentiable conformal risk control incl. CVaR: train the *signal through*
+     the controller instead of bolting it on. Research-grade, not a quick win.
+   - **arXiv:2603.13252** "When Alpha Breaks" — negative result worth internalizing:
+     inverse-uncertainty position sizing *degrades* rankers (uncertainty ∝ |score|); a binary
+     regime-trust gate (AUROC ~0.72–0.75) beats continuous confidence sizing. Endorses our
+     exposure-gate architecture over per-name confidence weighting.
+   - No citations of 2606.00320 exist yet (too recent; absent from LexiconArxiv corpus too).
+2. **Lead-lag/co-coverage**: **arXiv:2410.20597** (analyst-network GAT) confirmed as the
+   closest recent work; **arXiv:2604.19476** (LLM-filtered 10-K semantic network, S&P 500
+   2011–19) is the honest-effect-size benchmark — LS Sharpe 0.742→0.820, and *asymmetric*
+   (liquid→illiquid) edges carry the underreaction signal while symmetric edges revert.
+3. **Analyst signals**: **arXiv:2502.20489** — LLM embeddings of sell-side report *narratives*
+   predict beyond numeric rec/EPS/TP revisions, implying numeric revisions are largely priced;
+   tempers C#2 expectations and would need report text we don't have.
+4. **Cost-aware**: **arXiv:2605.01176** — decision-focused (SPO) learning implicitly inflates
+   predictions and churns; clipping/partial adjustment fix it (Gârleanu-Pedersen vindicated
+   again). **arXiv:2604.14206** — Bayesian-student distillation halves trading activity with
+   no explicit turnover penalty; curiosity, not a plan change.
+5. **LexiconArxiv corpus notes**: ICLR 2026 items "Predictive CVaR Q-learning" and "STABLE"
+   (shift-tolerant Black-Litterman) are adjacent but don't beat what we have; corpus is
+   ML-conference-weighted, so finance-journal/preprint coverage stays with WebSearch.
+
+**Net effect on priorities: none re-ranked.** 2602.03903 becomes the named upgrade path for
+the controller; 2603.13252 reinforces gate-not-size; the rest confirm existing plans.
+
 ## Reference index (sweep-verified, incremental to the 07-06 index)
 Costs: Frazzini-Israel-Moskowitz (JF 2018, SSRN 3229719); Brière-Lehalle-Nefedova-Raboun
 (SSRN 3380239); Novy-Marx-Velikov (RFS 2016, NBER w20721); DeMiguel-Martín-Utrera-Nogales-Uppal
