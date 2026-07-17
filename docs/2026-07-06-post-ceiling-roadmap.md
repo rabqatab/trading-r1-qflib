@@ -11,6 +11,10 @@
 ## The four directions, ranked by (feasibility × honest upside) for OUR setup
 
 ### A. Better TARGET — highest-ROI, buildable now, no new data
+> ⚠️ **REVISED 2026-07-17** ([`2026-07-17-remaining-items-lit-sweep.md`](2026-07-17-remaining-items-lit-sweep.md)):
+> second sweep found NO replicated OOS-Sharpe evidence for triple-barrier-as-target and one
+> published negative; plan changed to cross-sectional rank loss (LambdaRankIC) + label-horizon
+> sweep, with triple-barrier kept only as an optional calibrated-sizing meta-layer.
 Our `make_signal` is the *weakest* target framing in the literature (overlapping-EMA-blend, flat
 5-class quantile-cut softmax). Two of our own findings are textbook artifacts:
 - the 4× proxy/raw gap = **overlapping-returns inflation** (Boudoukh-Richardson-Whitelaw RFS 2008; Lo-MacKinlay).
