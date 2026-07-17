@@ -151,7 +151,9 @@ context-richness levers) are in the [memo](docs/2026-06-21-three-way-comparison-
 > **Honest scoreboard — raw 7-day-return IC, same 2025-H1 OOS (proxy IC in parens):**
 > | approach | type | raw IC |
 > |--|--|--:|
+> | **3-signal combo: mom+revision+PEAD** (rank mean) | **combination of new info** | **+0.096** (2025-H1; decade mean ~+0.01 — 2024-26 regime) |
 > | **analyst revision momentum** (Finnhub) | **new information** | **+0.080** (window-unstable) |
+> | PEAD (earnings-surprise drift, Finnhub) | new information | +0.068 (most stable) |
 > | reject-sampled blind SFT | best extraction | +0.053 (0.261) |
 > | *momentum, 1 feature (ref)* | baseline | +0.064 (0.266) |
 > | distill v3.1 (label-first+filter) | extraction | +0.025 (0.228) |
@@ -169,6 +171,10 @@ context-richness levers) are in the [memo](docs/2026-06-21-three-way-comparison-
 > - **Prose is useless to the LLM here; structure is not.** News headlines AND full article summaries
 >   both gave raw IC ≈ 0 (the paper's core "rich text to the LLM" lever is a **clean null** at 150-tk);
 >   the structured analyst *response* (revision) gave 0.080. → use the LLM as a structure-encoder.
+> - **2026-07-17 — prediction plateaus, but risk is controllable** ([`docs/2026-07-17-cvar-conformal-control.md`](docs/2026-07-17-cvar-conformal-control.md)):
+>   the RU-conformal online CVaR controller (arXiv:2606.00320) on the combo LS, 2017–2026: exposure-only
+>   control lifts Sharpe 0.72→**0.92**, cuts maxDD 24.7%→**9.2%**, pins realized CVaR to target
+>   (0.487% vs 0.500%) through COVID/2022/2025Q1 with zero recalibration; dominates fractional-Kelly.
 
 1. **Prediction ≠ profit — and "reward optimized" was overclaimed.** The bull-window Sharpes
    (incl. graded's 0.93) are largely a *long-bias dividend* of a rising market — in the flat

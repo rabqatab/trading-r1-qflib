@@ -52,3 +52,14 @@ Not more prediction modelling — the ceiling is proven. In priority:
 *mechanism*, proved its performance ceiling is information-bound at raw IC ~0.06, showed no modelling
 lever (through Opus-4.8 distillation) beats it, and found the only movement comes from new structured
 information. The productive frontier is target/risk/new-signal engineering, not a bigger model.
+
+## Post-scriptum (2026-07-17): roadmap B executed — risk IS controllable
+[[2026-07-17-cvar-conformal-control]]: the RU-conformal online CVaR controller (arXiv:2606.00320)
+applied to the combo LS over 2017–2026 (2223 days). Two updates to this scoreboard's context:
+1. **Multi-year OOS**: the combo's 0.096 is partly a 2024–2026 regime — decade mean daily IC ≈
+   +0.012, ~0 in 2017–2019, consistently positive only from 2020. The honest prediction story
+   stands, with a narrower window than the H1-2025 snapshot implied.
+2. **Risk control works where prediction plateaus**: same signal, exposure-only control → Sharpe
+   0.72 → **0.92**, maxDD 24.7% → **9.2%**, realized CVaR pinned to target (0.487% vs 0.500%)
+   across 9 years incl. COVID/2022/2025Q1, robust across a 3×3 γ/α sweep. Fractional-Kelly is
+   dominated on every risk metric. The paper's promised edge — drawdown control, not IC — is real.
