@@ -34,6 +34,10 @@ binary < cross-sectional ranking.
 *profitable* rather than inflated. This is the honest reframe.
 
 ### B. Risk-management to convert IC 0.06 → performance — the paper's ACTUAL edge
+> ✅ **EXECUTED 2026-07-17** ([`2026-07-17-cvar-conformal-control.md`](2026-07-17-cvar-conformal-control.md)):
+> the RU-conformal online CVaR controller (arXiv:2606.00320) subsumes #1+#3 (tail-targeting + implicit
+> regime de-risking) in one ~30-line update rule, validated on 2018Q4/2020/2022/2025Q1 as required —
+> Sharpe 0.72→0.92, maxDD 24.7%→9.2%, CVaR pinned to target; dominates #2 (fractional-Kelly).
 "You cannot buy Sharpe with better prediction at the info bound; you buy it with portfolio mechanics."
 Daniel-Moskowitz ("Momentum Crashes", JFE 2016): regime de-risking alone **~doubles** momentum Sharpe.
 
@@ -80,10 +84,12 @@ carries no incremental alpha over price in large caps).
 ## Recommended sequence (each is a self-contained experiment)
 1. **Target: triple-barrier + meta-labeling** (A) — biggest honest lift, no new data, direct fix to our
    two artifacts. Build a `labeling_triplebarrier.py` alt to `make_signal`; re-run the GBM/base ceiling.
-2. **Risk: CVaR/CDaR + fractional-Kelly + crash-validated regime switch** (B) — attacks the exact
-   drawdown/regime gap; prediction-free; must be validated on 2020/2022.
-3. **Info: analyst revision momentum from the Finnhub `revenue-estimate` endpoint** (C#2) — the one new
-   signal that's large-cap-native and already paid for.
+2. ✅ **Risk: CVaR/CDaR + fractional-Kelly + crash-validated regime switch** (B) — DONE 2026-07-17 via
+   the RU-conformal controller (see box above).
+3. ✅ **Info: analyst revision momentum** (C#2) — DONE 2026-07-06/08: revision raw IC 0.080, PEAD 0.068,
+   3-signal combo 0.096 on 2025-H1 ([`2026-07-06-analyst-revision-signal.md`](2026-07-06-analyst-revision-signal.md));
+   ⚠️ multi-year OOS shows the combo is a 2024-26 regime (decade daily IC ~+0.01). Finer
+   `eps/revenue-estimate` + price-target endpoints remain untried.
 4. **Encoder hybrid ablation** (D) — cheap, and either finds ~0.01 IC or yields a clean negative.
 5. (Higher effort) cross-firm links reaching outside the 150 (C#1) — the only true ceiling-mover, but
    needs supply-chain data.

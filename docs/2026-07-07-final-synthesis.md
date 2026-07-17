@@ -41,12 +41,13 @@ information — and the one input that carried some was a *structured* signal, n
 ## What's actually worth doing next (from [[2026-07-06-post-ceiling-roadmap]])
 Not more prediction modelling — the ceiling is proven. In priority:
 1. **Target redesign** (triple-barrier + meta-labeling) — kills the two artifacts above; no new data.
-2. **Risk management** (CVaR/CDaR + fractional-Kelly + crash-validated regime switch) — the paper's
-   actual edge; converts the honest 0.06 into drawdown-controlled performance.
-3. **Confirm/extend analyst revision** on a longer OOS + cost haircut; combine it with price as a
-   *second decorrelated ~0.06 signal* (Granger combination) rather than chasing a single high IC.
-4. Finer structured signals from the paid key: eps/revenue-estimate revision, price-target changes,
-   earnings-surprise drift (PEAD) — all large-cap-native, non-price.
+   *(still open)*
+2. ✅ **Risk management** — DONE 2026-07-17 via the RU-conformal online CVaR controller
+   ([[2026-07-17-cvar-conformal-control]]): Sharpe 0.72→0.92, maxDD 24.7→9.2%, CVaR pinned to target.
+3. ✅ **Confirm/extend analyst revision + combine** — DONE 2026-07-08/17: combo (mom+rev+PEAD) 0.096 on
+   2025-H1; multi-year check shows it's partly a 2024-26 regime (decade daily IC ~+0.01, ~0 pre-2020).
+4. Finer structured signals from the paid key: eps/revenue-estimate revision, price-target changes
+   *(PEAD done — +0.068)*. *(still open)*
 
 **Bottom line:** the reimplementation is complete and the science is honest — we reproduced the paper's
 *mechanism*, proved its performance ceiling is information-bound at raw IC ~0.06, showed no modelling
