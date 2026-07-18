@@ -13,6 +13,13 @@
 
 ---
 
+> 📄 **Final write-up (2026-07-18):** [*You Can't Model Your Way Past the Information Bound — But
+> You Can Control the Tail*](docs/2026-07-18-writeup-two-layer-result.md) — the consolidated story
+> of the whole arc: the prediction ceiling is information-bound (~0.06 raw IC), the residual alpha
+> was universe selection (+0.096 → +0.004 on a PIT universe), and the one thing that survives
+> every honesty upgrade is the RU-conformal CVaR exposure controller (8 streams, tail pinned,
+> costs included). Includes the 7 measurement traps the next person should not re-discover.
+
 ## What this is
 
 Three ways to turn information into US-equity trades, compared on **one**
