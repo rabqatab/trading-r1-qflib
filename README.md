@@ -188,6 +188,14 @@ context-richness levers) are in the [memo](docs/2026-06-21-three-way-comparison-
 >   winner filter and the combo only ranks within it. **Alpha layer: dead on an honest universe.
 >   Risk layer: intact** (CVaR pinned even on the dead stream). Norgate only needed to *defend* a
 >   PIT top-150-by-cap variant, not for this verdict.
+> - **2026-07-18 (final batch) — the controller is the product** ([`docs/2026-07-18-free-reprocessing-batch.md`](docs/2026-07-18-free-reprocessing-batch.md)):
+>   5 more free experiments. RU-conformal generality PROVEN: **8 loss streams, 2 targets, 10/10
+>   pins, year-by-year (2020: static 3.74% → 1.02%), Sharpe ≥ static everywhere, maxDD −3–10×**;
+>   spec'd weakness = crash-burst lag (the lit's regime-weighted fix passes only with in-sample
+>   tuning — vanilla stays). Alpha side: broker-event drift null (all info in day 0), co-coverage
+>   structurally closed (S&P bottom-tercile graph still 88–98% dense), one ~0.01 curiosity
+>   (industry leader-follower, t≈3–4, 10/10 yrs positive on the PIT universe). Free-data alpha
+>   work on this universe is exhausted.
 
 1. **Prediction ≠ profit — and "reward optimized" was overclaimed.** The bull-window Sharpes
    (incl. graded's 0.93) are largely a *long-bias dividend* of a rising market — in the flat
