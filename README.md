@@ -175,6 +175,13 @@ context-richness levers) are in the [memo](docs/2026-06-21-three-way-comparison-
 >   the RU-conformal online CVaR controller (arXiv:2606.00320) on the combo LS, 2017–2026: exposure-only
 >   control lifts Sharpe 0.72→**0.92**, cuts maxDD 24.7%→**9.2%**, pins realized CVaR to target
 >   (0.487% vs 0.500%) through COVID/2022/2025Q1 with zero recalibration; dominates fractional-Kelly.
+> - **2026-07-18 — the ceiling survives everything; costs survived too** ([`docs/2026-07-18-remaining-items-results.md`](docs/2026-07-18-remaining-items-results.md)):
+>   five parallel attacks on the prediction side (finer analyst endpoints, co-coverage links, rank
+>   targets, FinBERT encoder — all lit-sweep-recommended) returned **zero usable IC**; the encoder arm
+>   replicated the published large-cap null (embeddings ≤ shuffled placebo). The risk side delivered
+>   again: **buy/hold banding + RU-CVaR survives 3bps costs at net Sharpe 0.73 with the tail still
+>   pinned** (0.469% vs 0.5% target). ⚠️ half the net alpha needs same-close (MOC) execution.
+>   Open: PIT-universe re-test (free bounding → Norgate decision).
 
 1. **Prediction ≠ profit — and "reward optimized" was overclaimed.** The bull-window Sharpes
    (incl. graded's 0.93) are largely a *long-bias dividend* of a rising market — in the flat

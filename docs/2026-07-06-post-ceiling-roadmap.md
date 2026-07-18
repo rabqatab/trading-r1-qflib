@@ -15,6 +15,8 @@
 > second sweep found NO replicated OOS-Sharpe evidence for triple-barrier-as-target and one
 > published negative; plan changed to cross-sectional rank loss (LambdaRankIC) + label-horizon
 > sweep, with triple-barrier kept only as an optional calibrated-sizing meta-layer.
+> ❌ **EXECUTED 2026-07-18, negative** ([`2026-07-18-remaining-items-results.md`](2026-07-18-remaining-items-results.md)):
+> no rank arm beats regression or momentum; ranking halves IC variance without raising the mean.
 Our `make_signal` is the *weakest* target framing in the literature (overlapping-EMA-blend, flat
 5-class quantile-cut softmax). Two of our own findings are textbook artifacts:
 - the 4× proxy/raw gap = **overlapping-returns inflation** (Boudoukh-Richardson-Whitelaw RFS 2008; Lo-MacKinlay).
@@ -73,6 +75,9 @@ Universe tax (all of the above): every alt-data alpha is stronger in small/low-c
 post-publication decay) and Harvey-Liu-Zhu (t>3, not 1.96).
 
 ### D. LLM-as-ENCODER, not decision-maker — modest, buildable, resolves our text-null
+> ❌ **EXECUTED 2026-07-18, clean null** ([`2026-07-18-remaining-items-results.md`](2026-07-18-remaining-items-results.md)):
+> every text arm ≤ price baseline; FinBERT embeddings ≤ shuffled placebo (published null
+> arXiv:2606.29290 replicated). Text adds nothing here by either route (end-to-end or encoder+head).
 Every "text helps" result differs from our "text ≈ 0" in two ways: they use **embeddings not scalar
 sentiment/decisions**, and the big-alpha one (SESTM, Ke-Kelly-Xiu) is **return-supervised**. Our
 end-to-end SFT→GRPO over the raw prompt is the *weakest* config in every paper (Merrill/Tan: LLMs are
@@ -86,17 +91,19 @@ break. A return-supervised embedding that *still* adds ~0 OOS = a strong publish
 carries no incremental alpha over price in large caps).
 
 ## Recommended sequence (each is a self-contained experiment)
-1. **Target: triple-barrier + meta-labeling** (A) — biggest honest lift, no new data, direct fix to our
-   two artifacts. Build a `labeling_triplebarrier.py` alt to `make_signal`; re-run the GBM/base ceiling.
+1. ❌ **Target redesign** (A) — DONE 2026-07-18 (as rank target + horizon sweep per the revision
+   box above), negative: no arm beats regression/momentum.
 2. ✅ **Risk: CVaR/CDaR + fractional-Kelly + crash-validated regime switch** (B) — DONE 2026-07-17 via
    the RU-conformal controller (see box above).
 3. ✅ **Info: analyst revision momentum** (C#2) — DONE 2026-07-06/08: revision raw IC 0.080, PEAD 0.068,
    3-signal combo 0.096 on 2025-H1 ([`2026-07-06-analyst-revision-signal.md`](2026-07-06-analyst-revision-signal.md));
    ⚠️ multi-year OOS shows the combo is a 2024-26 regime (decade daily IC ~+0.01). Finer
-   `eps/revenue-estimate` + price-target endpoints remain untried.
-4. **Encoder hybrid ablation** (D) — cheap, and either finds ~0.01 IC or yields a clean negative.
-5. (Higher effort) cross-firm links reaching outside the 150 (C#1) — the only true ceiling-mover, but
-   needs supply-chain data.
+   `eps/revenue-estimate` + price-target endpoints: 🚫 CLOSED 2026-07-18 — snapshot-only, no PIT
+   history (untestable with our data); broker up/down fallback dilutes the combo.
+4. ❌ **Encoder hybrid ablation** (D) — DONE 2026-07-18: the clean negative (see box in §D).
+5. ❌ Cross-firm links (C#1) — DONE 2026-07-18 within-universe: co-coverage momentum IC +0.003
+   (graph too dense in 150 large caps — structural); Finnhub supply-chain graph +0.009 but
+   snapshot-only. The outside-the-150 extension remains the only untried variant.
 
 **One-line honest summary:** the ceiling on *prediction* is real and ~0.06; the remaining wins are in
 **target design, risk management, one new large-cap-native signal (analyst revisions), and using the
