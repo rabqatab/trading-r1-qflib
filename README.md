@@ -19,6 +19,10 @@
 > was universe selection (+0.096 → +0.004 on a PIT universe), and the one thing that survives
 > every honesty upgrade is the RU-conformal CVaR exposure controller (8 streams, tail pinned,
 > costs included). Includes the 7 measurement traps the next person should not re-discover.
+>
+> 🗂 **Navigation:** wiki-style knowledge layer at [`docs/wiki/home.md`](docs/wiki/home.md)
+> (one result per page, cross-linked) · evidence chain at [`docs/README.md`](docs/README.md) ·
+> LLM ingestion index at [`llms.txt`](llms.txt).
 
 ## What this is
 

@@ -3,6 +3,11 @@
 **Start here → [`2026-07-18-writeup-two-layer-result.md`](2026-07-18-writeup-two-layer-result.md)**
 — the consolidated write-up of the whole arc. Everything below is the evidence chain behind it.
 
+**For LLM/wiki-style navigation → [`wiki/home.md`](wiki/home.md)** — atomic knowledge layer:
+one established result per page with status frontmatter and cross-links (also indexed in the
+repo-root [`llms.txt`](../llms.txt)). Wiki pages are declarative; the dated docs below are the
+evidence.
+
 ## The chain (reading order, all current)
 
 | doc | what it establishes |

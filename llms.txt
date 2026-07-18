@@ -1,0 +1,35 @@
+# trading-r1-qflib
+
+> Honest reimplementation of Trading-R1 (arXiv:2509.11420): Qwen3-4B SFT→GRPO trading signals on
+> leak-safe qf-lib backtests, 150 US large caps. Final result is two-layer: prediction is
+> information-bound at raw IC ≈ 0.06 and the residual alpha was a universe-selection artifact
+> (+0.096 → +0.004 point-in-time), while the RU-conformal CVaR exposure controller is real and
+> portable (8 loss streams, tail pinned, costs included). Wiki pages are declarative knowledge;
+> dated docs are the evidence chain.
+
+## Knowledge (start here)
+
+- [Wiki home](docs/wiki/home.md): map of all established results
+- [Information ceiling](docs/wiki/information-ceiling.md): why no model beats raw IC ~0.06
+- [Universe-selection artifact](docs/wiki/universe-selection-artifact.md): where the alpha actually came from
+- [CVaR exposure controller](docs/wiki/cvar-exposure-controller.md): the portable product, spec + limits
+- [Signals tested](docs/wiki/signals-tested.md): every lever tried, with verdicts — the don't-retry list
+- [Measurement traps](docs/wiki/measurement-traps.md): 7 evaluation traps, each paid for once
+- [Transaction costs](docs/wiki/transaction-costs.md): cost gate results; MOC dependency
+- [Data assets](docs/wiki/data-assets.md): what data exists and what it cannot support
+- [Open questions](docs/wiki/open-questions.md): what remains, and its gates
+
+## Narrative & evidence
+
+- [Consolidated write-up](docs/2026-07-18-writeup-two-layer-result.md): the full story with all numbers
+- [Docs index](docs/README.md): the dated evidence chain in reading order
+- [Progress log](docs/PROGRESS-2026-06-21.md): chronological record
+- [Paper summary](docs/trading-r1-paper-summary.md): the paper being reimplemented
+- [README](README.md): repo layout, setup, model ladder, reproduction commands
+
+## Optional
+
+- [Why the ceiling](docs/2026-07-03-why-the-ceiling.md): proxy-inflation + MI measurement detail
+- [PIT bounding test](docs/2026-07-18-pit-bounding-test.md): the universe-selection decomposition
+- [CVaR control](docs/2026-07-17-cvar-conformal-control.md): controller first results + sweep
+- [Data reference](docs/DATA_STORE.md): schemas and QC gates
