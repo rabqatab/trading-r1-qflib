@@ -151,7 +151,7 @@ context-richness levers) are in the [memo](docs/2026-06-21-three-way-comparison-
 > **Honest scoreboard — raw 7-day-return IC, same 2025-H1 OOS (proxy IC in parens):**
 > | approach | type | raw IC |
 > |--|--|--:|
-> | **3-signal combo: mom+revision+PEAD** (rank mean) | **combination of new info** | **+0.096** (2025-H1; decade mean ~+0.01 — 2024-26 regime) |
+> | **3-signal combo: mom+revision+PEAD** (rank mean) | **combination of new info** | **+0.096** (2025-H1; decade ~+0.01; **PIT universe +0.004 — universe-selection artifact**) |
 > | **analyst revision momentum** (Finnhub) | **new information** | **+0.080** (window-unstable) |
 > | PEAD (earnings-surprise drift, Finnhub) | new information | +0.068 (most stable) |
 > | reject-sampled blind SFT | best extraction | +0.053 (0.261) |
@@ -181,7 +181,13 @@ context-richness levers) are in the [memo](docs/2026-06-21-three-way-comparison-
 >   replicated the published large-cap null (embeddings ≤ shuffled placebo). The risk side delivered
 >   again: **buy/hold banding + RU-CVaR survives 3bps costs at net Sharpe 0.73 with the tail still
 >   pinned** (0.469% vs 0.5% target). ⚠️ half the net alpha needs same-close (MOC) execution.
->   Open: PIT-universe re-test (free bounding → Norgate decision).
+> - **2026-07-18 (later) — PIT bounding test: the alpha was universe selection** ([`docs/2026-07-18-pit-bounding-test.md`](docs/2026-07-18-pit-bounding-test.md)):
+>   on a point-in-time S&P membership universe (~472 names/day, free data) the decade LS goes
+>   0.72 → 0.37 (∩ membership) → **−0.27** (full PIT cross-section); combo decade IC +0.012 → **+0.004**.
+>   Not a delisting artifact (gap persists at 96-99% coverage): "today's top-150" is a look-ahead
+>   winner filter and the combo only ranks within it. **Alpha layer: dead on an honest universe.
+>   Risk layer: intact** (CVaR pinned even on the dead stream). Norgate only needed to *defend* a
+>   PIT top-150-by-cap variant, not for this verdict.
 
 1. **Prediction ≠ profit — and "reward optimized" was overclaimed.** The bull-window Sharpes
    (incl. graded's 0.93) are largely a *long-bias dividend* of a rising market — in the flat

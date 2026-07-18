@@ -113,6 +113,11 @@ survives realistic costs (banded, net Sharpe 0.73 under CVaR control with the ta
 1. the free PIT bounding re-test → Norgate decision (survivorship gate);
 2. the same-close execution dependency (half the net alpha) — measurable only with intraday data.
 
+> **Update (same day):** open question 1 was executed — [[2026-07-18-pit-bounding-test]]. The
+> alpha does not survive a PIT universe (0.72 → −0.27 gross; combo decade IC +0.004); it was
+> universe selection, not delisting bias. Question 2 is moot unless a Norgate-built PIT
+> top-150-by-cap variant revives an alpha claim.
+
 Scripts: `cost_haircut_backtest.py`, `revision_breadth_ic.py`, `fetch_upgrade_downgrade.py`,
 `cocoverage_momentum_ic.py`, `fetch_cocoverage_data.py`, `rank_target_sweep.py`,
 `encoder_ablation.py`. Data (all gitignored): `finnhub_upgrade_downgrade/`, `finnhub_supply_chain/`,

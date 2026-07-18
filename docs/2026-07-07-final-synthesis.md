@@ -66,3 +66,19 @@ applied to the combo LS over 2017–2026 (2223 days). Two updates to this scoreb
    0.72 → **0.92**, maxDD 24.7% → **9.2%**, realized CVaR pinned to target (0.487% vs 0.500%)
    across 9 years incl. COVID/2022/2025Q1, robust across a 3×3 γ/α sweep. Fractional-Kelly is
    dominated on every risk metric. The paper's promised edge — drawdown control, not IC — is real.
+
+## Post-scriptum 2 (2026-07-18): the alpha itself was universe selection
+Two same-day follow-ups sharpen the two-layer result to its final form:
+1. **All remaining prediction levers came back null/negative**
+   ([[2026-07-18-remaining-items-results]]): rank targets, finer analyst endpoints (untestable —
+   snapshots), co-coverage links (structural fail in a dense large-cap graph), FinBERT encoder
+   (clean null, real embeddings ≤ shuffled placebo). The cost gate, by contrast, PASSED (banding →
+   net Sharpe 0.73 under CVaR control at 3bps).
+2. **PIT bounding test** ([[2026-07-18-pit-bounding-test]]): on a point-in-time S&P-membership
+   universe the decade LS is 0.72 → 0.37 (∩ membership) → **−0.27** (full cross-section); combo
+   decade IC **+0.004**. Not a delisting artifact (persists at 96-99% coverage) — "today's
+   top-150" is a look-ahead winner filter, and the combo only ranks within the winner set.
+**Final two-layer statement: the prediction layer is information-bound AND its residual decade
+alpha was a universe-selection artifact; the risk layer (RU-conformal CVaR exposure control) is
+real, loss-stream-agnostic, and survives costs.** What would change the alpha verdict: a PIT
+top-150-by-cap rebuild (needs Norgate) or genuinely new PIT information sources.
