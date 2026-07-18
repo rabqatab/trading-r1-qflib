@@ -1,3 +1,5 @@
+> ⚠️ **Historical (2026-07-01).** Proxy-IC numbers herein are smoothing-inflated (~4×) — see [`2026-07-03-why-the-ceiling.md`](2026-07-03-why-the-ceiling.md) for the corrected raw-return framing.
+
 # Top-150 scale-up: real LLM learning curve + multimodal ceiling (2026-07-01)
 
 > Status: **setup complete, training/inference RUNNING on node 2, results PENDING.**

@@ -1,3 +1,5 @@
+> **Historical record (2026-06-30)** of the reward-audit discussion. Conclusions absorbed into README finding #1 and [`2026-07-07-final-synthesis.md`](2026-07-07-final-synthesis.md).
+
 # Jiwoong reward rebuttal — cause, symptoms, results, and proposed next actions
 
 > Date: 2026-06-30  

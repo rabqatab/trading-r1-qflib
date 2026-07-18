@@ -31,6 +31,5 @@ qflib_top150_*.tar.gz
 
 # Session handoff / context artifacts (kept local, not part of the codebase)
 chat_files/
-docs/context/
-docs/file_notes/
 tools/
+docs/archive/

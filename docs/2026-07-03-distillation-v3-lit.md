@@ -1,3 +1,5 @@
+> **Historical (2026-07-03).** Lit review for the distillation v3/v3.1 arc, now closed: v3.1's proxy gain was a mirage (raw +0.025). Final word: [`2026-07-07-final-synthesis.md`](2026-07-07-final-synthesis.md).
+
 # Reasoning-distillation literature for distillation v3 (2026-07-03)
 
 > Informs the live Opus-4.8 reverse-reasoning experiment. Verified via LexiconArxiv + WebSearch.

@@ -1,3 +1,5 @@
+> ⚠️ **Historical (2026-06-30).** The 0.24 "ceiling" discussed here is the smoothed-proxy number — corrected by [`2026-07-03-why-the-ceiling.md`](2026-07-03-why-the-ceiling.md): the tradeable raw-return ceiling is ~0.06. The GBM-as-proxy *methodology* stands.
+
 # Is the GBM a valid proxy for the LLM? — rigorous multi-axis test (2026-06-30)
 
 > ⚠️ **Correction (2026-07-03, [`why-the-ceiling.md`](2026-07-03-why-the-ceiling.md)):** this doc

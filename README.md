@@ -66,7 +66,7 @@ trading-r1-qflib/
 ├── crawl_news.py         # Google-News-RSS news crawler (reproduces news.parquet)
 ├── qf-lib-harness/       # submodule → github.com/ico1036/qf-lib-harness (frozen, read-only)
 ├── data/                 # gitignored: prices, qflib_data_store/ (multi-modal), sft_adapter_v0..v2/
-├── docs/                 # DATA_STORE · DATA_QC_RUBRIC · DATA_REQUIREMENTS · memo · superpowers/{specs,plans}
+├── docs/                 # evidence chain + reference — see docs/README.md for the index
 └── tradingR1.pdf         # the paper
 ```
 
@@ -152,8 +152,8 @@ context-richness levers) are in the [memo](docs/2026-06-21-three-way-comparison-
 
 > **⏫ 2026-07 top-150 scale-up — the ceiling is information-bound at raw IC ~0.06, and no modelling
 > beats it.** Full scoreboard: [`docs/2026-07-07-final-synthesis.md`](docs/2026-07-07-final-synthesis.md);
-> why: [`docs/2026-07-03-why-the-ceiling.md`](docs/2026-07-03-why-the-ceiling.md); next work:
-> [`docs/2026-07-06-post-ceiling-roadmap.md`](docs/2026-07-06-post-ceiling-roadmap.md).
+> why: [`docs/2026-07-03-why-the-ceiling.md`](docs/2026-07-03-why-the-ceiling.md); roadmap (all
+> items now executed): [`docs/2026-07-06-post-ceiling-roadmap.md`](docs/2026-07-06-post-ceiling-roadmap.md).
 >
 > **Honest scoreboard — raw 7-day-return IC, same 2025-H1 OOS (proxy IC in parens):**
 > | approach | type | raw IC |
@@ -178,31 +178,24 @@ context-richness levers) are in the [memo](docs/2026-06-21-three-way-comparison-
 > - **Prose is useless to the LLM here; structure is not.** News headlines AND full article summaries
 >   both gave raw IC ≈ 0 (the paper's core "rich text to the LLM" lever is a **clean null** at 150-tk);
 >   the structured analyst *response* (revision) gave 0.080. → use the LLM as a structure-encoder.
-> - **2026-07-17 — prediction plateaus, but risk is controllable** ([`docs/2026-07-17-cvar-conformal-control.md`](docs/2026-07-17-cvar-conformal-control.md)):
->   the RU-conformal online CVaR controller (arXiv:2606.00320) on the combo LS, 2017–2026: exposure-only
->   control lifts Sharpe 0.72→**0.92**, cuts maxDD 24.7%→**9.2%**, pins realized CVaR to target
->   (0.487% vs 0.500%) through COVID/2022/2025Q1 with zero recalibration; dominates fractional-Kelly.
-> - **2026-07-18 — the ceiling survives everything; costs survived too** ([`docs/2026-07-18-remaining-items-results.md`](docs/2026-07-18-remaining-items-results.md)):
->   five parallel attacks on the prediction side (finer analyst endpoints, co-coverage links, rank
->   targets, FinBERT encoder — all lit-sweep-recommended) returned **zero usable IC**; the encoder arm
->   replicated the published large-cap null (embeddings ≤ shuffled placebo). The risk side delivered
->   again: **buy/hold banding + RU-CVaR survives 3bps costs at net Sharpe 0.73 with the tail still
->   pinned** (0.469% vs 0.5% target). ⚠️ half the net alpha needs same-close (MOC) execution.
-> - **2026-07-18 (later) — PIT bounding test: the alpha was universe selection** ([`docs/2026-07-18-pit-bounding-test.md`](docs/2026-07-18-pit-bounding-test.md)):
->   on a point-in-time S&P membership universe (~472 names/day, free data) the decade LS goes
->   0.72 → 0.37 (∩ membership) → **−0.27** (full PIT cross-section); combo decade IC +0.012 → **+0.004**.
->   Not a delisting artifact (gap persists at 96-99% coverage): "today's top-150" is a look-ahead
->   winner filter and the combo only ranks within it. **Alpha layer: dead on an honest universe.
->   Risk layer: intact** (CVaR pinned even on the dead stream). Norgate only needed to *defend* a
->   PIT top-150-by-cap variant, not for this verdict.
-> - **2026-07-18 (final batch) — the controller is the product** ([`docs/2026-07-18-free-reprocessing-batch.md`](docs/2026-07-18-free-reprocessing-batch.md)):
->   5 more free experiments. RU-conformal generality PROVEN: **8 loss streams, 2 targets, 10/10
->   pins, year-by-year (2020: static 3.74% → 1.02%), Sharpe ≥ static everywhere, maxDD −3–10×**;
->   spec'd weakness = crash-burst lag (the lit's regime-weighted fix passes only with in-sample
->   tuning — vanilla stays). Alpha side: broker-event drift null (all info in day 0), co-coverage
->   structurally closed (S&P bottom-tercile graph still 88–98% dense), one ~0.01 curiosity
->   (industry leader-follower, t≈3–4, 10/10 yrs positive on the PIT universe). Free-data alpha
->   work on this universe is exhausted.
+>
+> **How the arc ended (2026-07-17/18)** — full detail in the
+> [write-up](docs/2026-07-18-writeup-two-layer-result.md); one line per step:
+> 1. **Risk is controllable where prediction plateaus** — RU-conformal CVaR exposure control:
+>    Sharpe 0.72→0.92, maxDD 24.7→9.2%, tail pinned, zero recalibration
+>    ([doc](docs/2026-07-17-cvar-conformal-control.md)).
+> 2. **Every remaining lit-recommended prediction lever returned null** (rank targets, finer analyst
+>    endpoints, cross-firm links, text encoders); **the cost gate PASSED** — banding + control =
+>    net Sharpe 0.73 @3bps, tail still pinned ([doc](docs/2026-07-18-remaining-items-results.md)).
+> 3. **The residual alpha was universe selection** — on a point-in-time universe the decade LS goes
+>    0.72 → 0.37 → **−0.27** and combo IC → +0.004; not a delisting artifact
+>    ([doc](docs/2026-07-18-pit-bounding-test.md)).
+> 4. **The controller is the product** — 8 loss streams, 10/10 CVaR pins year-by-year, Sharpe ≥
+>    static everywhere; free-data alpha work exhausted
+>    ([doc](docs/2026-07-18-free-reprocessing-batch.md)).
+>
+> **Final two-layer statement: modelling the conditional mean was information-bound (and its
+> residual was a universe artifact); modelling the tail was not.**
 
 1. **Prediction ≠ profit — and "reward optimized" was overclaimed.** The bull-window Sharpes
    (incl. graded's 0.93) are largely a *long-bias dividend* of a rising market — in the flat
@@ -235,6 +228,9 @@ context-richness levers) are in the [memo](docs/2026-06-21-three-way-comparison-
    > we genuinely can't test is the paper's full **article bodies** at 15–23k tok — our news
    > is **headlines-only** (Google-RSS); that, and a far larger universe, are the only
    > untested differences left.
+   > **→ RESOLVED 2026-07-07/18:** real article *summaries* (Finnhub) tested at 150-tk — clean
+   > null (raw IC −0.010, identical to headlines); FinBERT-embedding encoder route also null
+   > (embeddings ≤ shuffled placebo). The text lever is closed, not merely untested.
 3. **The cap is horizon- and cost-bound, not model-bound.** Shortening the label horizon
    to 2–5 d lifts achievable IC to 0.33, but the faster rebalancing it needs gives the
    gain back to transaction costs — net Sharpe peaks at the current 3/7/15-d weekly.
@@ -249,18 +245,18 @@ context-richness levers) are in the [memo](docs/2026-06-21-three-way-comparison-
    (RL narrows the gap: SFT extracts ~60 % of the ceiling, GRPO ~88 %.)
 5. **The multimodal signal was news-driven.** It looked like an orthogonal regime-hedge
    (CV IC ~0.12, positive in 2025-H1) but a news-less walk-forward on fresh 2025-H2→2026
-   data scores ~0.02 — and `news.parquet` is the one stale feed (ends 2025-06). Reviving it
-   is **free** (extend `crawl_news.py`'s `MONTHS` range and re-run — Google-News-RSS, no key).
+   data scores ~0.02. *(Reviving it is moot post-2026-07: news text proved a clean null at
+   150-tk by both the end-to-end and encoder routes — see the update box above.)*
 6. **vs the paper:** on its own window our best GRPO matches Sharpe (1.51 vs 1.57) but the
    **drawdown is 2× worse** (5.5 % vs 2.8 %) — the real gap is risk/regime control (= the
    oracle's prediction limit in 2d, not sizing).
 
 **Net:** the simplest defensible model (SFT v1) is the most defensive; graded-reward GRPO
 gives the best bull-window return; a non-LLM GBM is the best *tabular* predictor. The binding
-constraint for *quantified* inputs is their predictive content (IC ~0.24) and transaction
-cost — not reward shape, RL depth, model size, or hardware. **The one input lever not yet
-fairly tested is the paper's: an LLM reasoning over full-scale raw news *text*** (see the
-scope caveat above) — that reproduction is the current work.
+constraint is the input's predictive content — not reward shape, RL depth, model size, or
+hardware — and the 2026-07 arc closed the last open lever (news text: null by both routes).
+Final verdict and the 7 measurement traps:
+[`docs/2026-07-18-writeup-two-layer-result.md`](docs/2026-07-18-writeup-two-layer-result.md).
 
 ## Reproduce a model's evaluation
 
@@ -313,14 +309,15 @@ future-dated leakage invalidates the backtest.
 
 ## Status & next
 
-Comparison substrate + baselines + prompt-only LLM ✅ done; the SFT→GRPO ladder is
-trained and audited (see [Models](#models-at-a-glance)). The open lever is the
-**input's predictive content** — every other knob (reward, RL depth, model size,
-multimodal-as-fed) is capped by the IC ceiling. Candidate next steps: a fresh **news**
-pull to revive the multimodal signal (free — extend `crawl_news.py`'s `MONTHS` range past
-2025-06 and re-run; Google-News-RSS, no key), or productionising the GBM signal.
-Design docs in `docs/superpowers/specs/`; full chronological log in
-[`docs/PROGRESS-2026-06-21.md`](docs/PROGRESS-2026-06-21.md).
+**The arc is complete** (2026-07-18): substrate, SFT→GRPO ladder, ceiling proof, new-information
+signals, multi-year + PIT validation, cost gate, and the CVaR controller are all done and
+documented — see the [write-up](docs/2026-07-18-writeup-two-layer-result.md) and the
+[docs index](docs/README.md). What remains is paid-data-gated only: a Norgate-built PIT
+top-150-by-cap variant (the one defensible large-cap arm free data can't construct), intraday
+data for the MOC-execution dependency, or a genuinely sparse-coverage universe. The portable
+artifact is `ru_conformal()` (`compare_lab/cvar_conformal_backtest.py`) — a ~30-line
+distribution-free CVaR exposure controller validated on 8 loss streams.
+Full chronological log: [`docs/PROGRESS-2026-06-21.md`](docs/PROGRESS-2026-06-21.md).
 
 ## Testing
 

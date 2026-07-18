@@ -1,3 +1,5 @@
+> ⚠️ **Historical design doc (2026-07-04).** v3.1's proxy IC 0.228 proved a bearish-collapse mirage (raw +0.025) — see [`2026-07-07-final-synthesis.md`](2026-07-07-final-synthesis.md).
+
 # Distillation v3.1 design — label-first + self-consistency filter (2026-07-04)
 
 > Acts on the two literature-backed fixes from [`2026-07-03-distillation-v3-lit.md`](2026-07-03-distillation-v3-lit.md)

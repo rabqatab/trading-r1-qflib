@@ -1,3 +1,5 @@
+> ⚠️ **Claim superseded.** The +0.080 revision / +0.096 combo numbers hold on the 2025-H1 window only — decade mean ~+0.012, and **+0.004 on a point-in-time universe** ([`2026-07-18-pit-bounding-test.md`](2026-07-18-pit-bounding-test.md)): a universe-selection artifact. Construction details remain valid.
+
 # Analyst estimate-revision signal (Finnhub paid key) — the first thing that touched raw returns (2026-07-06)
 
 > Roadmap C#2 ([`post-ceiling-roadmap`](2026-07-06-post-ceiling-roadmap.md)): the literature said the
